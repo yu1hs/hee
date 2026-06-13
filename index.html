@@ -148,48 +148,32 @@
         const userNameInput = document.getElementById('user-name');
         const startBtn = document.getElementById('start-desktop');
         
-        let lastLogin = localStorage.getItem('hee_last_login');
         let now = new Date().toISOString().slice(0, 19).replace('T', ' ');
-        
-        document.getElementById('last-login').textContent = lastLogin || '2024-12-31 04:13:00';
+        document.getElementById('last-login').textContent = localStorage.getItem('hee_last_login') || '2024-12-31 04:13:00';
         
         // 检查是否已有用户名
         let savedName = localStorage.getItem('hee_username');
-        if (savedName) {
-            userNameInput.value = savedName;
-        }
+        if (savedName) userNameInput.value = savedName;
         
-        // 首次进入标记
-        const isFirstTime = localStorage.getItem('hee_initialized') === null;
+        // 强制重置：首次进入从第1天开始
+        const isFirstTime = localStorage.getItem('hee_initialized') !== 'true';
         
         function enterDesktop() {
             let userName = userNameInput.value.trim();
-            if (!userName) {
-                userName = '陌生人';
-            }
+            if (!userName) userName = '陌生人';
             localStorage.setItem('hee_username', userName);
             localStorage.setItem('hee_last_login', now);
             
             if (isFirstTime) {
-                // 首次进入：重置所有数据，从第1天开始
+                // 首次进入：完全重置
+                localStorage.clear();
                 localStorage.setItem('hee_day', '1');
                 localStorage.setItem('hee_residue', '0');
                 localStorage.setItem('hee_first_popup', 'false');
                 localStorage.setItem('hee_initialized', 'true');
-                localStorage.removeItem('hee_last_story_date');
-                localStorage.removeItem('hee_last_reply_date');
-                localStorage.removeItem('hee_deleted_files');
-                localStorage.removeItem('hee_recycle_items');
-                localStorage.removeItem('hee_diary_count');
-                localStorage.removeItem('hee_photo_count');
-                localStorage.removeItem('hee_sticky_count');
-                localStorage.removeItem('hee_email_count');
-                localStorage.removeItem('hee_cmd_count');
-                localStorage.removeItem('hee_notepad');
-                localStorage.removeItem('hee_ending');
-                localStorage.removeItem('hee_achievements');
-                localStorage.removeItem('hee_completed_endings');
-                console.log('首次进入，已重置数据，从第1天开始');
+                localStorage.setItem('hee_username', userName);
+                localStorage.setItem('hee_last_login', now);
+                console.log('首次进入，已重置，第1天');
             } else {
                 // 非首次：确保天数有效
                 let savedDay = parseInt(localStorage.getItem('hee_day') || '1');
@@ -199,10 +183,7 @@
                 if (localStorage.getItem('hee_residue') === null) {
                     localStorage.setItem('hee_residue', '0');
                 }
-                if (localStorage.getItem('hee_first_popup') === null) {
-                    localStorage.setItem('hee_first_popup', 'false');
-                }
-                console.log('非首次进入，当前天数:', localStorage.getItem('hee_day'));
+                console.log('当前天数:', localStorage.getItem('hee_day'));
             }
             
             bootScreen.style.opacity = '0';
@@ -223,24 +204,17 @@
                 .then(response => response.text())
                 .then(html => {
                     desktopContainer.innerHTML = html;
-                    const script = document.createElement('script');
-                    script.src = 'js/audio.js';
-                    document.body.appendChild(script);
-                    const script2 = document.createElement('script');
-                    script2.src = 'js/weather.js';
-                    document.body.appendChild(script2);
-                    const script3 = document.createElement('script');
-                    script3.src = 'js/achievements.js';
-                    document.body.appendChild(script3);
-                    const script4 = document.createElement('script');
-                    script4.src = 'js/save.js';
-                    document.body.appendChild(script4);
-                    const script5 = document.createElement('script');
-                    script5.src = 'js/desktop.js';
-                    document.body.appendChild(script5);
-                    const script6 = document.createElement('script');
-                    script6.src = 'js/story.js';
-                    document.body.appendChild(script6);
+                    // 按顺序加载脚本
+                    const scripts = ['js/audio.js', 'js/desktop.js', 'js/story.js'];
+                    let index = 0;
+                    function loadNext() {
+                        if (index >= scripts.length) return;
+                        const script = document.createElement('script');
+                        script.src = scripts[index];
+                        script.onload = () => { index++; loadNext(); };
+                        document.body.appendChild(script);
+                    }
+                    loadNext();
                 })
                 .catch(err => {
                     console.error('加载失败:', err);
