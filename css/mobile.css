@@ -1,0 +1,268 @@
+/* mobile.css - 手机/平板适配 */
+
+/* 手机端断点 */
+@media (max-width: 768px) {
+    
+    /* 桌面图标改为网格布局 */
+    .desktop-icons {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        top: 60px;
+        left: 12px;
+        right: 12px;
+        padding-bottom: 60px;
+    }
+    
+    .desktop-icon {
+        flex-direction: column;
+        text-align: center;
+        gap: 4px;
+        padding: 8px;
+        min-width: auto;
+    }
+    
+    .icon-image {
+        font-size: 40px;
+    }
+    
+    .icon-label {
+        font-size: 10px;
+        max-width: 70px;
+        word-break: break-word;
+    }
+    
+    /* 任务栏调整 */
+    .taskbar {
+        height: 50px;
+        padding: 0 6px;
+    }
+    
+    .start-button {
+        padding: 6px 10px;
+    }
+    
+    .start-text {
+        display: none;
+    }
+    
+    .taskbar-tray {
+        gap: 6px;
+    }
+    
+    .taskbar-item {
+        padding: 4px 8px;
+        font-size: 10px;
+        max-width: 80px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    .system-tray {
+        gap: 6px;
+        padding: 0 6px;
+    }
+    
+    .tray-icon {
+        font-size: 16px;
+    }
+    
+    /* 开始菜单全屏 */
+    .start-menu {
+        position: fixed;
+        bottom: 50px;
+        left: 0;
+        right: 0;
+        width: 100%;
+        border-radius: 12px 12px 0 0;
+        max-height: 70vh;
+        overflow-y: auto;
+    }
+    
+    /* 窗口全屏 */
+    .window {
+        width: 95% !important;
+        height: 85% !important;
+        left: 2.5% !important;
+        top: 10% !important;
+        border-radius: 12px;
+    }
+    
+    .window.maximized {
+        width: 100% !important;
+        height: calc(100% - 50px) !important;
+        left: 0 !important;
+        top: 0 !important;
+        border-radius: 0;
+    }
+    
+    /* 弹窗位置调整 */
+    .system-popup {
+        bottom: 70px;
+        right: 10px;
+        left: 10px;
+        width: auto;
+        max-width: none;
+    }
+    
+    /* 便签位置 */
+    .sticky-note {
+        top: auto;
+        bottom: 100px;
+        right: 10px;
+        left: 10px;
+        width: auto;
+    }
+    
+    /* 照片网格 */
+    .photo-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+    
+    /* 计算器 */
+    .calculator {
+        width: 100%;
+        max-width: 300px;
+        margin: 0 auto;
+    }
+    
+    .calc-btn {
+        padding: 14px;
+        font-size: 16px;
+    }
+    
+    /* 终端 */
+    .terminal-output {
+        height: 250px;
+    }
+    
+    .terminal-input {
+        font-size: 14px;
+    }
+    
+    /* 日历 */
+    .calendar-day {
+        padding: 10px 4px;
+        font-size: 12px;
+    }
+    
+    /* 闹钟 */
+    .alarm-time {
+        font-size: 16px;
+    }
+    
+    /* 通讯录 */
+    .contact-card {
+        padding: 14px;
+    }
+    
+    .contact-avatar {
+        width: 50px;
+        height: 50px;
+        font-size: 24px;
+    }
+    
+    /* 按钮增大点击区域 */
+    .desktop-icon,
+    .taskbar-item,
+    .start-menu-item,
+    .window-control,
+    .system-popup-btn,
+    .calc-btn,
+    .paint-tool {
+        min-height: 44px;
+    }
+    
+    /* 底部留白 */
+    .window-content {
+        padding-bottom: 60px;
+    }
+}
+
+/* 平板适配 */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .desktop-icons {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+    }
+    
+    .photo-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* 横屏模式 */
+@media (max-width: 768px) and (orientation: landscape) {
+    .desktop-icons {
+        grid-template-columns: repeat(5, 1fr);
+        gap: 8px;
+        top: 50px;
+    }
+    
+    .icon-image {
+        font-size: 32px;
+    }
+    
+    .window {
+        height: 70% !important;
+        top: 15% !important;
+    }
+    
+    .terminal-output {
+        height: 150px;
+    }
+}
+
+/* 深色模式跟随系统 */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-dark: #0a0a0a;
+        --bg-darker: #050505;
+    }
+}
+
+/* 减少动画（辅助功能） */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+    }
+    
+    .system-popup {
+        animation: none;
+        opacity: 1;
+    }
+}
+
+/* 触摸优化 */
+@media (max-width: 768px) {
+    /* 禁用hover效果，改用active */
+    .desktop-icon:active {
+        background: rgba(95, 139, 111, 0.3);
+        transform: scale(0.98);
+    }
+    
+    .window-control:active {
+        background: #3a3a4a;
+    }
+    
+    /* 滚动条隐藏（可选） */
+    .window-content::-webkit-scrollbar {
+        width: 3px;
+    }
+    
+    /* 防止iOS缩放 */
+    input, textarea, button {
+        font-size: 16px;
+    }
+    
+    /* 长按菜单禁用 */
+    .desktop-icon {
+        -webkit-touch-callout: none;
+        touch-action: manipulation;
+    }
+}
