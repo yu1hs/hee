@@ -10,97 +10,141 @@
 </head>
 <body>
 <div class="desktop" id="desktop">
+    <!-- 桌面壁纸区域 -->
     <div class="desktop-wallpaper" id="desktop-wallpaper"></div>
     
+    <!-- 桌面图标区域 - 网格布局像真实桌面 -->
     <div class="desktop-icons" id="desktop-icons">
+        <!-- 我的电脑 -->
         <div class="desktop-icon" data-app="mycomputer">
             <div class="icon-image">🖥️</div>
             <div class="icon-label">我的电脑</div>
         </div>
+        
+        <!-- 回收站 -->
         <div class="desktop-icon" data-app="recycle">
             <div class="icon-image">🗑️</div>
             <div class="icon-label">回收站</div>
         </div>
+        
+        <!-- 浏览器 -->
         <div class="desktop-icon" data-app="browser">
             <div class="icon-image">🌐</div>
             <div class="icon-label">浏览器</div>
         </div>
+        
+        <!-- 日记本 -->
         <div class="desktop-icon" data-app="diary">
             <div class="icon-image">📓</div>
             <div class="icon-label">日记本.txt</div>
         </div>
+        
+        <!-- 照片 -->
         <div class="desktop-icon" data-app="photos">
             <div class="icon-image">🖼️</div>
             <div class="icon-label">照片</div>
         </div>
+        
+        <!-- 便签 -->
         <div class="desktop-icon" data-app="stickynotes">
             <div class="icon-image">📌</div>
             <div class="icon-label">便签</div>
         </div>
+        
+        <!-- 收藏夹 -->
         <div class="desktop-icon" data-app="favorites">
             <div class="icon-image">⭐</div>
             <div class="icon-label">收藏夹</div>
         </div>
+        
+        <!-- 备忘录 -->
         <div class="desktop-icon" data-app="memo">
             <div class="icon-image">📝</div>
             <div class="icon-label">备忘录.exe</div>
         </div>
+        
+        <!-- 日志 -->
         <div class="desktop-icon" data-app="logs">
             <div class="icon-image">📋</div>
             <div class="icon-label">日志.log</div>
         </div>
+        
+        <!-- 记事本 -->
         <div class="desktop-icon" data-app="notepad">
             <div class="icon-image">📄</div>
             <div class="icon-label">记事本</div>
         </div>
+        
+        <!-- 画图 -->
         <div class="desktop-icon" data-app="paint">
             <div class="icon-image">🎨</div>
             <div class="icon-label">画图</div>
         </div>
+        
+        <!-- 计算器 -->
         <div class="desktop-icon" data-app="calculator">
             <div class="icon-image">🔢</div>
             <div class="icon-label">计算器</div>
         </div>
+        
+        <!-- 终端 -->
         <div class="desktop-icon" data-app="terminal">
             <div class="icon-image">⌨️</div>
             <div class="icon-label">终端</div>
         </div>
+        
+        <!-- 日历 -->
         <div class="desktop-icon" data-app="calendar">
             <div class="icon-image">📅</div>
             <div class="icon-label">日历</div>
         </div>
+        
+        <!-- 闹钟 -->
         <div class="desktop-icon" data-app="alarm">
             <div class="icon-image">⏰</div>
             <div class="icon-label">闹钟</div>
         </div>
+        
+        <!-- 通讯录 -->
         <div class="desktop-icon" data-app="contacts">
             <div class="icon-image">👥</div>
             <div class="icon-label">通讯录</div>
         </div>
+        
+        <!-- 邮箱 -->
         <div class="desktop-icon" data-app="email">
             <div class="icon-image">📧</div>
             <div class="icon-label">邮箱</div>
         </div>
+        
+        <!-- 运行 -->
         <div class="desktop-icon" data-app="run">
             <div class="icon-image">⚙️</div>
             <div class="icon-label">运行</div>
         </div>
+        
+        <!-- 陌生文件夹（第7天解锁，初始隐藏） -->
         <div class="desktop-icon hidden" id="secret-folder" data-app="secret">
             <div class="icon-image">📁</div>
             <div class="icon-label">一个陌生的文件夹</div>
         </div>
+        
+        <!-- 欢迎.txt（第1天3秒后出现） -->
         <div class="desktop-icon hidden" id="welcome-file" data-app="welcome">
             <div class="icon-image">📄</div>
             <div class="icon-label">欢迎.txt</div>
         </div>
     </div>
     
+    <!-- 任务栏 -->
     <div class="taskbar" id="taskbar">
         <div class="start-button" id="start-button">
             <span class="start-icon">🔘</span>
             <span class="start-text">开始</span>
         </div>
-        <div class="taskbar-tray" id="taskbar-tray"></div>
+        <div class="taskbar-tray" id="taskbar-tray">
+            <!-- 打开的窗口会显示在这里 -->
+        </div>
         <div class="system-tray">
             <span class="tray-icon">🔊</span>
             <span class="tray-icon">🌐</span>
@@ -108,20 +152,25 @@
         </div>
     </div>
     
+    <!-- 开始菜单 -->
     <div class="start-menu hidden" id="start-menu">
         <div class="start-menu-header">
-            <div class="start-menu-user">User</div>
+            <div class="start-menu-user" id="start-menu-user">User</div>
         </div>
         <div class="start-menu-items">
             <div class="start-menu-item" data-app="mycomputer">🖥️ 我的电脑</div>
             <div class="start-menu-item" data-app="browser">🌐 浏览器</div>
             <div class="start-menu-item" data-app="diary">📓 日记本</div>
             <div class="start-menu-divider"></div>
+            <div class="start-menu-item" id="new-game">🔄 新游戏</div>
             <div class="start-menu-item" id="shutdown">🔌 关机</div>
         </div>
     </div>
     
+    <!-- 弹窗容器 -->
     <div id="popup-container"></div>
+    
+    <!-- 窗口容器 -->
     <div id="windows-container"></div>
 </div>
 
