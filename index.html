@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <title>HEE · 痕迹</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #000000;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Courier New', 'Fira Code', monospace;
+        }
+
+        /* 开机画面 */
+        .boot-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            transition: opacity 0.3s ease;
+        }
+
+        .boot-content {
+            text-align: center;
+        }
+
+        .boot-logo {
+            font-size: 48px;
+            color: #5f8b6f;
+            letter-spacing: 8px;
+            margin-bottom: 20px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .boot-text {
+            color: #5f8b6f;
+            font-size: 14px;
+            margin: 8px 0;
+            opacity: 0;
+            animation: fadeInUp 0.3s forwards;
+        }
+
+        .boot-text:nth-child(2) { animation-delay: 0.2s; }
+        .boot-text:nth-child(3) { animation-delay: 0.5s; }
+        .boot-text:nth-child(4) { animation-delay: 0.8s; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        .cursor-blink::after {
+            content: '_';
+            animation: blink 1s step-end infinite;
+        }
+
+        /* 桌面容器 */
+        #desktop-container {
+            width: 100%;
+            height: 100vh;
+            background: #1a4d2a;
+            background-image: radial-gradient(circle at 25% 40%, rgba(0,0,0,0.2) 2%, transparent 2.5%),
+                              radial-gradient(circle at 75% 80%, rgba(0,0,0,0.15) 1.5%, transparent 2%);
+            background-size: 40px 40px, 35px 35px;
+            display: none;
+        }
+
+        /* 加载提示 */
+        .loading {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            color: #5f8b6f;
+            font-size: 12px;
+            font-family: monospace;
+            z-index: 100;
+        }
+    </style>
+</head>
+<body>
+    <!-- 开机画面 -->
+    <div id="boot-screen" class="boot-screen">
+        <div class="boot-content">
+            <div class="boot-logo">HEE</div>
+            <div class="boot-text">Booting...</div>
+            <div class="boot-text">Loading system files...</div>
+            <div class="boot-text cursor-blink">Press any key</div>
+        </div>
+    </div>
+
+    <!-- 桌面容器 -->
+    <div id="desktop-container"></div>
+    <div id="loading" class="loading" style="display: none;">Loading...</div>
+
+    <script>
+        // 开机逻辑
+        const bootScreen = document.getElementById('boot-screen');
+        const desktopContainer = document.getElementById('desktop-container');
+        const loadingEl = document.getElementById('loading');
+        
+        // 记录上次登录时间
+        let lastLogin = localStorage.getItem('hee_last_login');
+        let now = new Date().toISOString().slice(0, 19).replace('T', ' ');
+        
+        if (!lastLogin) {
+            localStorage.setItem('hee_last_login', '2024-12-31 04:13:00');
+        } else {
+            // 检查是否新的一天
+            let lastDate = localStorage.getItem('hee_last_date');
+            let today = new Date().toDateString();
+            if (lastDate !== today) {
+                let currentDay = parseInt(localStorage.getItem('hee_day') || '1');
+                if (currentDay < 7) {
+                    localStorage.setItem('hee_day', currentDay + 1);
+                }
+                localStorage.setItem('hee_last_date', today);
+            }
+        }
+        
+        // 初始化残响值
+        if (localStorage.getItem('hee_residue') === null) {
+            localStorage.setItem('hee_residue', '0');
+        }
+        
+        // 初始化天数
+        if (localStorage.getItem('hee_day') === null) {
+            localStorage.setItem('hee_day', '1');
+        }
+        
+        // 初始化首次弹窗标记
+        if (localStorage.getItem('hee_first_popup') === null) {
+            localStorage.setItem('hee_first_popup', 'false');
+        }
+        
+        // 按任意键进入桌面
+        function enterDesktop() {
+            bootScreen.style.opacity = '0';
+            setTimeout(() => {
+                bootScreen.style.display = 'none';
+                desktopContainer.style.display = 'block';
+                loadDesktop();
+            }, 300);
+        }
+        
+        document.addEventListener('keydown', enterDesktop, { once: true });
+        bootScreen.addEventListener('click', enterDesktop, { once: true });
+        
+        // 加载桌面
+        function loadDesktop() {
+            loadingEl.style.display = 'block';
+            loadingEl.textContent = 'Loading desktop...';
+            
+            fetch('desktop.html')
+                .then(response => response.text())
+                .then(html => {
+                    desktopContainer.innerHTML = html;
+                    loadingEl.style.display = 'none';
+                    
+                    // 加载桌面脚本
+                    const script = document.createElement('script');
+                    script.src = 'js/desktop.js';
+                    document.body.appendChild(script);
+                })
+                .catch(err => {
+                    console.error('加载失败:', err);
+                    desktopContainer.innerHTML = '<div style="color: #5f8b6f; text-align: center; padding: 50px;">加载失败，请刷新重试</div>';
+                    loadingEl.style.display = 'none';
+                });
+        }
+    </script>
+</body>
+</html>
