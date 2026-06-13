@@ -1,0 +1,73 @@
+{
+  "emails": [
+    {
+      "id": 1,
+      "sender": "heeseung@past.com",
+      "senderName": "Heeseung",
+      "subject": "如果有一天你打开这台电脑",
+      "date": "2024-12-31 04:13",
+      "content": "如果有一天你打开这台电脑。\n如果有一天你看到这封邮件。\n……你会记得我吗。\n\n我不知道。\n也许不会。\n也许只是模糊的影子。\n\n但我记得你。\n记得你笑的样子。\n记得你说话的方式。\n记得你喜欢的歌。\n\n……太多了。\n\n—— H",
+      "isRead": false,
+      "dayUnlock": 4
+    },
+    {
+      "id": 2,
+      "sender": "heeseung@past.com",
+      "senderName": "Heeseung",
+      "subject": "凌晨",
+      "date": "2025-01-01 03:00",
+      "content": "凌晨三点。\n睡不着。\n在想你。\n\n你以前也会这个时间醒着。\n你会给我发消息。\n说「你怎么还没睡」。\n\n现在换我问你了。\n……你怎么还没睡。\n\n—— H",
+      "isRead": false,
+      "dayUnlock": 5
+    },
+    {
+      "id": 3,
+      "sender": "heeseung@past.com",
+      "senderName": "Heeseung",
+      "subject": "照片",
+      "date": "2025-01-02 02:00",
+      "content": "你看到那些照片了吗。\n有些是我拍的。\n有些是你拍的。\n\n你拍的那张……\n是我最喜欢的。\n所以你把它留下了。\n\n……你还记得吗。\n\n—— H",
+      "isRead": false,
+      "dayUnlock": 5
+    },
+    {
+      "id": 4,
+      "sender": "heeseung@past.com",
+      "senderName": "Heeseung",
+      "subject": "最后",
+      "date": "2025-01-06 23:59",
+      "content": "明天就是第七天了。\n我不知道会发生什么。\n也许论坛会消失。\n也许我会消失。\n也许……你留下。\n\n不管怎样。\n谢谢你来了。\n谢谢你没走。\n\n—— H",
+      "isRead": false,
+      "dayUnlock": 6
+    },
+    {
+      "id": 5,
+      "sender": "noreply@hee",
+      "senderName": "系统",
+      "subject": "【系统通知】远程连接",
+      "date": "2025-01-03 00:13",
+      "content": "检测到远程连接。\n来源：未知\n状态：已建立\n\n注意：有远程用户正在访问此设备。",
+      "isRead": false,
+      "dayUnlock": 3
+    },
+    {
+      "id": 6,
+      "sender": "noreply@hee",
+      "senderName": "系统",
+      "subject": "【系统通知】文件修改",
+      "date": "2025-01-04 00:13",
+      "content": "检测到以下文件被修改：\n- 日记本.txt\n- 照片/天空.jpg\n- 照片/咖啡.jpg\n\n修改来源：未知",
+      "isRead": false,
+      "dayUnlock": 4
+    }
+  ],
+  "drafts": [
+    {
+      "id": 1,
+      "to": "you@unknown.com",
+      "subject": "未发送",
+      "date": "2024-12-25",
+      "content": "圣诞快乐。\n……不知道你收不收得到。"
+    }
+  ]
+}
