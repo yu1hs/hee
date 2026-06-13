@@ -20,7 +20,6 @@
             font-family: 'Courier New', 'Fira Code', monospace;
         }
 
-        /* 开机画面 */
         .boot-screen {
             position: fixed;
             top: 0;
@@ -37,6 +36,7 @@
 
         .boot-content {
             text-align: center;
+            padding: 20px;
         }
 
         .boot-logo {
@@ -55,9 +55,44 @@
             animation: fadeInUp 0.3s forwards;
         }
 
-        .boot-text:nth-child(2) { animation-delay: 0.2s; }
-        .boot-text:nth-child(3) { animation-delay: 0.5s; }
-        .boot-text:nth-child(4) { animation-delay: 0.8s; }
+        .name-input-container {
+            margin-top: 30px;
+            opacity: 0;
+            animation: fadeInUp 0.3s forwards;
+            animation-delay: 1s;
+        }
+
+        .name-input {
+            background: transparent;
+            border: 1px solid #5f8b6f;
+            padding: 10px 16px;
+            color: #5f8b6f;
+            font-family: monospace;
+            font-size: 14px;
+            text-align: center;
+            width: 200px;
+            outline: none;
+        }
+
+        .name-input::placeholder {
+            color: #3a5a4a;
+        }
+
+        .start-btn {
+            margin-top: 16px;
+            padding: 8px 24px;
+            background: transparent;
+            border: 1px solid #5f8b6f;
+            color: #5f8b6f;
+            cursor: pointer;
+            font-family: monospace;
+            transition: all 0.2s;
+        }
+
+        .start-btn:hover {
+            background: #5f8b6f;
+            color: #000000;
+        }
 
         @keyframes fadeIn {
             from { opacity: 0; transform: scale(0.9); }
@@ -79,86 +114,66 @@
             animation: blink 1s step-end infinite;
         }
 
-        /* 桌面容器 */
         #desktop-container {
             width: 100%;
             height: 100vh;
-            background: #1a4d2a;
-            background-image: radial-gradient(circle at 25% 40%, rgba(0,0,0,0.2) 2%, transparent 2.5%),
-                              radial-gradient(circle at 75% 80%, rgba(0,0,0,0.15) 1.5%, transparent 2%);
-            background-size: 40px 40px, 35px 35px;
             display: none;
-        }
-
-        /* 加载提示 */
-        .loading {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            color: #5f8b6f;
-            font-size: 12px;
-            font-family: monospace;
-            z-index: 100;
         }
     </style>
 </head>
 <body>
-    <!-- 开机画面 -->
     <div id="boot-screen" class="boot-screen">
         <div class="boot-content">
             <div class="boot-logo">HEE</div>
             <div class="boot-text">Booting...</div>
-            <div class="boot-text">Loading system files...</div>
-            <div class="boot-text cursor-blink">Press any key</div>
+            <div class="boot-text delay-1">Loading system files...</div>
+            <div class="boot-text delay-2">Last login: <span id="last-login">--</span></div>
+            <div class="name-input-container">
+                <input type="text" id="user-name" class="name-input" placeholder="输入你的名字" maxlength="20">
+                <br>
+                <button id="start-desktop" class="start-btn">进入</button>
+            </div>
         </div>
     </div>
 
-    <!-- 桌面容器 -->
     <div id="desktop-container"></div>
-    <div id="loading" class="loading" style="display: none;">Loading...</div>
 
     <script>
-        // 开机逻辑
         const bootScreen = document.getElementById('boot-screen');
         const desktopContainer = document.getElementById('desktop-container');
-        const loadingEl = document.getElementById('loading');
+        const userNameInput = document.getElementById('user-name');
+        const startBtn = document.getElementById('start-desktop');
         
-        // 记录上次登录时间
         let lastLogin = localStorage.getItem('hee_last_login');
         let now = new Date().toISOString().slice(0, 19).replace('T', ' ');
         
-        if (!lastLogin) {
-            localStorage.setItem('hee_last_login', '2024-12-31 04:13:00');
-        } else {
-            // 检查是否新的一天
-            let lastDate = localStorage.getItem('hee_last_date');
-            let today = new Date().toDateString();
-            if (lastDate !== today) {
-                let currentDay = parseInt(localStorage.getItem('hee_day') || '1');
-                if (currentDay < 7) {
-                    localStorage.setItem('hee_day', currentDay + 1);
-                }
-                localStorage.setItem('hee_last_date', today);
-            }
+        document.getElementById('last-login').textContent = lastLogin || '2024-12-31 04:13:00';
+        
+        // 检查是否已有用户名
+        let savedName = localStorage.getItem('hee_username');
+        if (savedName) {
+            userNameInput.value = savedName;
         }
         
-        // 初始化残响值
-        if (localStorage.getItem('hee_residue') === null) {
-            localStorage.setItem('hee_residue', '0');
-        }
-        
-        // 初始化天数
-        if (localStorage.getItem('hee_day') === null) {
-            localStorage.setItem('hee_day', '1');
-        }
-        
-        // 初始化首次弹窗标记
-        if (localStorage.getItem('hee_first_popup') === null) {
-            localStorage.setItem('hee_first_popup', 'false');
-        }
-        
-        // 按任意键进入桌面
         function enterDesktop() {
+            let userName = userNameInput.value.trim();
+            if (!userName) {
+                userName = '陌生人';
+            }
+            localStorage.setItem('hee_username', userName);
+            localStorage.setItem('hee_last_login', now);
+            
+            // 初始化天数
+            if (localStorage.getItem('hee_day') === null) {
+                localStorage.setItem('hee_day', '1');
+            }
+            if (localStorage.getItem('hee_residue') === null) {
+                localStorage.setItem('hee_residue', '0');
+            }
+            if (localStorage.getItem('hee_first_popup') === null) {
+                localStorage.setItem('hee_first_popup', 'false');
+            }
+            
             bootScreen.style.opacity = '0';
             setTimeout(() => {
                 bootScreen.style.display = 'none';
@@ -167,29 +182,38 @@
             }, 300);
         }
         
-        document.addEventListener('keydown', enterDesktop, { once: true });
-        bootScreen.addEventListener('click', enterDesktop, { once: true });
+        startBtn.addEventListener('click', enterDesktop);
+        userNameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') enterDesktop();
+        });
         
-        // 加载桌面
         function loadDesktop() {
-            loadingEl.style.display = 'block';
-            loadingEl.textContent = 'Loading desktop...';
-            
             fetch('desktop.html')
                 .then(response => response.text())
                 .then(html => {
                     desktopContainer.innerHTML = html;
-                    loadingEl.style.display = 'none';
-                    
-                    // 加载桌面脚本
                     const script = document.createElement('script');
-                    script.src = 'js/desktop.js';
+                    script.src = 'js/audio.js';
                     document.body.appendChild(script);
+                    const script2 = document.createElement('script');
+                    script2.src = 'js/weather.js';
+                    document.body.appendChild(script2);
+                    const script3 = document.createElement('script');
+                    script3.src = 'js/achievements.js';
+                    document.body.appendChild(script3);
+                    const script4 = document.createElement('script');
+                    script4.src = 'js/save.js';
+                    document.body.appendChild(script4);
+                    const script5 = document.createElement('script');
+                    script5.src = 'js/desktop.js';
+                    document.body.appendChild(script5);
+                    const script6 = document.createElement('script');
+                    script6.src = 'js/story.js';
+                    document.body.appendChild(script6);
                 })
                 .catch(err => {
                     console.error('加载失败:', err);
-                    desktopContainer.innerHTML = '<div style="color: #5f8b6f; text-align: center; padding: 50px;">加载失败，请刷新重试</div>';
-                    loadingEl.style.display = 'none';
+                    desktopContainer.innerHTML = '<div style="color:#5f8b6f; text-align:center; padding:50px;">加载失败，请刷新重试</div>';
                 });
         }
     </script>
