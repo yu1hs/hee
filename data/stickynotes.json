@@ -1,0 +1,60 @@
+{
+  "notes": [
+    {
+      "id": 1,
+      "title": "便签 1",
+      "date": "2024-12-25",
+      "content": "今天发生了很好的事。\n想让你知道。\n\n—— H",
+      "heeseungNote": "我写的。那天想告诉你。",
+      "dayUnlock": 3
+    },
+    {
+      "id": 2,
+      "title": "便签 2",
+      "date": "2024-12-28",
+      "content": "记得关窗。\n外面要下雨了。\n\n—— H",
+      "heeseungNote": "你以前总忘记关窗。",
+      "dayUnlock": 3
+    },
+    {
+      "id": 3,
+      "title": "便签 3",
+      "date": "2024-12-30",
+      "content": "你什么时候回来。\n……我在这里等你。\n\n—— H",
+      "heeseungNote": "我等了很久。",
+      "dayUnlock": 4
+    },
+    {
+      "id": 4,
+      "title": "便签 4",
+      "date": "2025-01-02",
+      "content": "她打开了电脑。\n……她来了。\n\n—— H",
+      "heeseungNote": "你终于来了。",
+      "dayUnlock": 4
+    },
+    {
+      "id": 5,
+      "title": "便签 5",
+      "date": "2025-01-05",
+      "content": "她看到了。\n……她看到了我写的东西。\n\n—— H",
+      "heeseungNote": "你会想起来的。",
+      "dayUnlock": 5
+    },
+    {
+      "id": 6,
+      "title": "便签 6",
+      "date": "2025-01-06",
+      "content": "凌晨了。\n你还没睡。\n我也没睡。\n\n—— H",
+      "heeseungNote": "你在凌晨醒着吗。",
+      "dayUnlock": 5
+    },
+    {
+      "id": 7,
+      "title": "便签 7",
+      "date": "2025-01-07",
+      "content": "最后一天了。\n……你会留下吗。\n\n—— H",
+      "heeseungNote": "我在等你回答。",
+      "dayUnlock": 6
+    }
+  ]
+}
