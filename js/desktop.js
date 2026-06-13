@@ -448,4 +448,70 @@ function loadMyComputer(container) {
 }
 
 function loadRecycle(container) {
-    container.innerHTML = `<div><div style="padding:12px; border-bottom:1px solid #2a2a3a;">🗑️ note_01.txt<br><span style="font-size:10px; color:#666;">2024-03-15</span></div><div style="padding:12px; border-bottom:1px solid #2a2
+    container.innerHTML = `<div><div style="padding:12px; border-bottom:1px solid #2a2a3a;">🗑️ note_01.txt<br><span style="font-size:10px; color:#666;">2024-03-15</span></div><div style="padding:12px; border-bottom:1px solid #2a2a3a;">🗑️ note_02.txt<br><span style="font-size:10px; color:#666;">2024-06-22</span></div></div>`;
+}
+
+function loadWelcome(container) {
+    container.innerHTML = `<div style="text-align:center; padding:20px;"><div style="font-size:24px;">📄 欢迎.txt</div><div style="line-height:1.8;">你打开了这台电脑。<br><br>……你终于打开了。<br><br>我会让你想起来的。<br><br><span style="color:#5f8b6f;">—— 一个陌生人</span></div></div>`;
+}
+
+function showWelcomeFile() { playSound('notify'); document.getElementById('welcome-file')?.classList.remove('hidden'); }
+
+function showHeeseungPopup(message, options) {
+    playSound('message');
+    const container = document.getElementById('popup-container');
+    const popup = document.createElement('div');
+    popup.className = 'system-popup';
+    popup.innerHTML = `<div class="system-popup-header"><span>[ 悄悄话 ]</span><button class="system-popup-close">✕</button></div><div class="system-popup-content">${escapeHtml(message)}</div><div class="system-popup-buttons" id="popup-buttons"></div>`;
+    const btnsDiv = popup.querySelector('#popup-buttons');
+    options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = 'system-popup-btn';
+        btn.textContent = opt.text;
+        btn.addEventListener('click', () => {
+            playSound('click');
+            popup.remove();
+            setTimeout(() => {
+                const replyPopup = document.createElement('div');
+                replyPopup.className = 'system-popup';
+                replyPopup.style.bottom = '100px';
+                replyPopup.innerHTML = `<div class="system-popup-header"><span>Heeseung</span><button class="system-popup-close">✕</button></div><div class="system-popup-content">${escapeHtml(opt.reply)}</div>`;
+                container.appendChild(replyPopup);
+                setTimeout(() => replyPopup.remove(), 5000);
+                residue = Math.max(-10, Math.min(30, residue + (opt.residue || 0)));
+                localStorage.setItem('hee_residue', residue);
+                updateResidueDisplay();
+                if(currentDay >= 7) checkEnding();
+            }, 2000);
+        });
+        btnsDiv.appendChild(btn);
+    });
+    popup.querySelector('.system-popup-close').addEventListener('click', () => { playSound('close'); popup.remove(); });
+    container.appendChild(popup);
+    setTimeout(() => { if(popup.parentElement) popup.remove(); }, 30000);
+}
+
+function checkEnding() {
+    let ending = '';
+    if(residue >= 21) ending = '❤️ 真结局 · 痕迹\n\n我本来想删掉一切的。但你来了。……所以我不删了。';
+    else if(residue >= 13) ending = '💬 好结局 · 我在\n\n我没有离开。只是不知道该怎么面对一个……真的看见我的人。';
+    else if(residue >= 5) ending = '😐 普通结局 · 余温\n\n他还在这里。只是不再说话了。';
+    else if(residue >= 0) ending = '❌ 假结局 · 回音\n\n他好像不在这里了。';
+    else ending = '💀 假结局 · 格式化\n\n这次真的删掉了。';
+    setTimeout(() => showHeeseungPopup(ending, [{ text:'……', reply:'', residue:0 }]), 1000);
+}
+
+function updateTime() {
+    const now = new Date();
+    document.getElementById('tray-time').textContent = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+}
+
+function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => m==='&'?'&amp;':m==='<'?'&lt;':'&gt;'); }
+
+window.viewPhoto = function(id) { showHeeseungPopup('你看了这张照片。', [{ text:'好看', reply:'你以前也这么说。', residue:1 }]); };
+window.viewStickyNote = function(id) {
+    const notes = {1:'今天发生了很好的事。想让你知道。\n\n—— H',2:'记得关窗。\n\n—— H',3:'你什么时候回来。\n\n—— H',4:'她打开了电脑。\n\n—— H',5:'她看到了。\n\n—— H'};
+    showHeeseungPopup(`📌 便签内容\n\n${notes[id]}`, [{ text:'这是你写的？', reply:'嗯。', residue:1 }]);
+};
+window.viewEmail = function() { showHeeseungPopup('如果有一天你打开这台电脑。\n你会记得我吗。', [{ text:'我记得', reply:'谢谢。', residue:3 }]); };
+window.openForum = function() { showHeeseungPopup('论坛正在加载...', [{ text:'进入', reply:'你终于来了。', residue:1 }]); };
