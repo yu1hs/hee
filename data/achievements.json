@@ -1,0 +1,200 @@
+{
+  "achievements": [
+    {
+      "id": "first_boot",
+      "name": "🔌 初次开机",
+      "desc": "第一次打开这台电脑",
+      "secret": false,
+      "points": 5
+    },
+    {
+      "id": "first_reply",
+      "name": "💬 第一次对话",
+      "desc": "回复了羲承的第一条消息",
+      "secret": false,
+      "points": 5
+    },
+    {
+      "id": "day2",
+      "name": "📅 第二天",
+      "desc": "连续两天登录",
+      "secret": false,
+      "points": 10
+    },
+    {
+      "id": "diary_reader",
+      "name": "📓 日记读者",
+      "desc": "阅读了5篇日记",
+      "secret": false,
+      "points": 10
+    },
+    {
+      "id": "photo_watcher",
+      "name": "🖼️ 照片观察者",
+      "desc": "发现了照片会变化",
+      "secret": false,
+      "points": 15
+    },
+    {
+      "id": "midnight_oil",
+      "name": "🌙 夜猫子",
+      "desc": "在凌晨时段登录",
+      "secret": false,
+      "points": 10
+    },
+    {
+      "id": "residue_10",
+      "name": "📈 残响·萌芽",
+      "desc": "残响值达到10",
+      "secret": false,
+      "points": 10
+    },
+    {
+      "id": "residue_20",
+      "name": "📈 残响·生长",
+      "desc": "残响值达到20",
+      "secret": false,
+      "points": 15
+    },
+    {
+      "id": "residue_30",
+      "name": "📈 残响·满溢",
+      "desc": "残响值达到30",
+      "secret": true,
+      "points": 20
+    },
+    {
+      "id": "all_photos",
+      "name": "📸 记忆收集者",
+      "desc": "查看过所有照片",
+      "secret": false,
+      "points": 15
+    },
+    {
+      "id": "all_stickynotes",
+      "name": "📌 便签收藏家",
+      "desc": "阅读了所有便签",
+      "secret": false,
+      "points": 15
+    },
+    {
+      "id": "secret_folder",
+      "name": "🔓 陌生的文件夹",
+      "desc": "发现了隐藏文件夹",
+      "secret": true,
+      "points": 20
+    },
+    {
+      "id": "calculator_secret",
+      "name": "🔢 数字的秘密",
+      "desc": "在计算器中输入了特殊数字",
+      "secret": true,
+      "points": 10
+    },
+    {
+      "id": "terminal_master",
+      "name": "⌨️ 终端黑客",
+      "desc": "在终端输入了5个不同命令",
+      "secret": false,
+      "points": 10
+    },
+    {
+      "id": "email_reader",
+      "name": "📧 过去的邮件",
+      "desc": "阅读了所有邮件",
+      "secret": false,
+      "points": 15
+    },
+    {
+      "id": "drawing",
+      "name": "🎨 画家",
+      "desc": "在画图中画了一幅画",
+      "secret": false,
+      "points": 5
+    },
+    {
+      "id": "notepad_writer",
+      "name": "✍️ 记事本作者",
+      "desc": "在记事本中写了100字以上",
+      "secret": false,
+      "points": 10
+    },
+    {
+      "id": "alarm_setter",
+      "name": "⏰ 闹钟",
+      "desc": "尝试修改闹钟时间",
+      "secret": false,
+      "points": 5
+    },
+    {
+      "id": "contact_click",
+      "name": "👤 联系人",
+      "desc": "点击了通讯录里的Heeseung",
+      "secret": false,
+      "points": 5
+    },
+    {
+      "id": "run_heeseung",
+      "name": "⚙️ 运行",
+      "desc": "在运行中输入了「heeseung」",
+      "secret": true,
+      "points": 10
+    },
+    {
+      "id": "true_ending",
+      "name": "❤️ 真结局",
+      "desc": "达成真结局「痕迹」",
+      "secret": false,
+      "points": 30
+    },
+    {
+      "id": "good_ending",
+      "name": "💬 好结局",
+      "desc": "达成好结局「我在」",
+      "secret": false,
+      "points": 20
+    },
+    {
+      "id": "normal_ending",
+      "name": "😐 普通结局",
+      "desc": "达成普通结局「余温」",
+      "secret": false,
+      "points": 15
+    },
+    {
+      "id": "secret_ending",
+      "name": "🌑 隐藏结局",
+      "desc": "达成隐藏结局「藏在硬盘里」",
+      "secret": true,
+      "points": 40
+    },
+    {
+      "id": "all_endings",
+      "name": "🏆 结局收藏家",
+      "desc": "达成所有结局",
+      "secret": true,
+      "points": 50
+    },
+    {
+      "id": "week_complete",
+      "name": "📆 七天",
+      "desc": "连续七天登录",
+      "secret": false,
+      "points": 20
+    },
+    {
+      "id": "no_reply",
+      "name": "🤐 沉默的玩家",
+      "desc": "连续三次选择沉默",
+      "secret": true,
+      "points": 10
+    },
+    {
+      "id": "fast_reader",
+      "name": "⚡ 速读者",
+      "desc": "一天内阅读了5个板块",
+      "secret": false,
+      "points": 10
+    }
+  ]
+}
