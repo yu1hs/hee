@@ -1,13 +1,7 @@
-/* desktop.js - 桌面主逻辑（完整版） */
+/* desktop.js - 桌面主逻辑（简化独立版） */
 
-// ========== 确保天数从第1天开始 ==========
-let savedDay = parseInt(localStorage.getItem('hee_day') || '1');
-if (savedDay < 1 || savedDay > 7 || isNaN(savedDay)) {
-    savedDay = 1;
-    localStorage.setItem('hee_day', '1');
-    console.log('天数已重置为1');
-}
-let currentDay = savedDay;
+// ========== 初始化 ==========
+let currentDay = parseInt(localStorage.getItem('hee_day') || '1');
 let residue = parseInt(localStorage.getItem('hee_residue') || '0');
 let openWindows = [];
 let nextWindowZIndex = 100;
@@ -15,21 +9,13 @@ let currentUserId = localStorage.getItem('hee_username') || 'User';
 let welcomeShown = false;
 let firstPopupShown = localStorage.getItem('hee_first_popup') === 'true';
 
-// 远程操控相关变量
-let remoteControlInterval = null;
-let lastRemoteTime = 0;
-let deletedFiles = [];
-
-console.log('当前天数:', currentDay, '残响值:', residue);
+console.log('Desktop: 第', currentDay, '天, 残响值:', residue);
 
 document.addEventListener('DOMContentLoaded', function() {
     initDesktop();
     initEvents();
     updateTime();
     setInterval(updateTime, 1000);
-    
-    // 启动远程操控随机事件
-    startRemoteControl();
     
     setTimeout(() => {
         if (!welcomeShown) {
@@ -38,7 +24,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }, 3000);
     
-    // 第一次弹窗（仅第1天）
+    // 第一天弹窗
     if (!firstPopupShown && currentDay === 1) {
         setTimeout(() => {
             showHeeseungPopup('……你怎么进来的。这个论坛不应该被找到。', [
@@ -56,8 +42,6 @@ function initDesktop() {
     playSound('boot');
     updateResidueDisplay();
     updateDayBasedContent();
-    // 恢复被删除的文件
-    loadDeletedFilesStatus();
 }
 
 function updateResidueDisplay() {
@@ -72,6 +56,7 @@ function updateResidueDisplay() {
 }
 
 function updateDayBasedContent() {
+    // 根据天数解锁图标
     if (currentDay >= 3) {
         document.querySelector('[data-app="photos"]')?.classList.remove('hidden');
         document.querySelector('[data-app="terminal"]')?.classList.remove('hidden');
@@ -96,200 +81,20 @@ function updateDayBasedContent() {
     }
 }
 
-// ========== 远程操控系统 ==========
-function startRemoteControl() {
-    if (remoteControlInterval) clearInterval(remoteControlInterval);
-    
-    remoteControlInterval = setInterval(() => {
-        // 残响值越高，操控越频繁
-        const chance = Math.random() * 100;
-        const threshold = Math.min(40, 10 + residue);
-        
-        if (chance < threshold && currentDay >= 2) {
-            const events = ['move_mouse', 'open_file', 'delete_file', 'glitch'];
-            const event = events[Math.floor(Math.random() * events.length)];
-            
-            switch(event) {
-                case 'move_mouse':
-                    remoteMoveMouse();
-                    break;
-                case 'open_file':
-                    remoteOpenFile();
-                    break;
-                case 'delete_file':
-                    remoteDeleteFile();
-                    break;
-                case 'glitch':
-                    triggerGlitch();
-                    break;
-            }
-        }
-    }, 30000);
-}
-
-function remoteMoveMouse() {
-    const icons = document.querySelectorAll('.desktop-icon:not(.hidden)');
-    if (icons.length === 0) return;
-    
-    const randomIcon = icons[Math.floor(Math.random() * icons.length)];
-    const rect = randomIcon.getBoundingClientRect();
-    const targetX = rect.left + rect.width / 2;
-    const targetY = rect.top + rect.height / 2;
-    
-    const cursor = document.createElement('div');
-    cursor.style.cssText = `
-        position: fixed;
-        width: 20px;
-        height: 20px;
-        border: 2px solid #5f8b6f;
-        border-radius: 50%;
-        pointer-events: none;
-        z-index: 10000;
-        transition: all 0.5s ease;
-        left: ${targetX - 10}px;
-        top: ${targetY - 10}px;
-        opacity: 0.8;
-    `;
-    document.body.appendChild(cursor);
-    
-    playSound('click');
-    
-    setTimeout(() => {
-        cursor.remove();
-        randomIcon.style.backgroundColor = 'rgba(95, 139, 111, 0.3)';
-        setTimeout(() => {
-            randomIcon.style.backgroundColor = '';
-        }, 300);
-        
-        setTimeout(() => {
-            const userName = localStorage.getItem('hee_username') || '你';
-            showHeeseungPopup(`我在看着${userName}。`, [
-                { text: '……', reply: '你感觉到了吗。', residue: 1 }
-            ]);
-        }, 1000);
-    }, 500);
-}
-
-function remoteOpenFile() {
-    const apps = ['diary', 'photos', 'stickynotes', 'memo'];
-    const randomApp = apps[Math.floor(Math.random() * apps.length)];
-    
-    playSound('open');
-    triggerGlitch();
-    
-    setTimeout(() => {
-        openApp(randomApp);
-        
-        setTimeout(() => {
-            const userName = localStorage.getItem('hee_username') || '你';
-            showHeeseungPopup(`我帮你打开了。${userName}想看这个吧。`, [
-                { text: '……', reply: '我知道你想要什么。', residue: 1 }
-            ]);
-        }, 1500);
-    }, 500);
-}
-
-function remoteDeleteFile() {
-    const icons = document.querySelectorAll('.desktop-icon:not(.hidden):not([data-app="mycomputer"]):not([data-app="recycle"])');
-    if (icons.length === 0) return;
-    
-    const randomIcon = icons[Math.floor(Math.random() * icons.length)];
-    const appName = randomIcon.dataset.app;
-    const iconLabel = randomIcon.querySelector('.icon-label')?.textContent || '文件';
-    
-    randomIcon.style.opacity = '0.5';
-    playSound('delete');
-    
-    setTimeout(() => {
-        randomIcon.classList.add('hidden');
-        deletedFiles.push({ app: appName, label: iconLabel, time: Date.now() });
-        localStorage.setItem('hee_deleted_files', JSON.stringify(deletedFiles));
-        
-        addToRecycleRecord(iconLabel);
-        triggerGlitch();
-        
-        setTimeout(() => {
-            showHeeseungPopup(`「${iconLabel}」我删掉了。……你不看的话，就没有存在的意义。`, [
-                { text: '为什么删掉', reply: '因为我只想让你看我。', residue: 0 }
-            ]);
-        }, 1000);
-    }, 500);
-}
-
-function addToRecycleRecord(fileName) {
-    let recycleContent = localStorage.getItem('hee_recycle_items') || '[]';
-    try {
-        let items = JSON.parse(recycleContent);
-        items.unshift({ name: fileName, date: new Date().toISOString(), deletedBy: 'Heeseung' });
-        if (items.length > 10) items.pop();
-        localStorage.setItem('hee_recycle_items', JSON.stringify(items));
-    } catch(e) {}
-}
-
-function loadDeletedFilesStatus() {
-    const saved = localStorage.getItem('hee_deleted_files');
-    if (saved) {
-        try {
-            deletedFiles = JSON.parse(saved);
-            deletedFiles.forEach(df => {
-                const icon = document.querySelector(`.desktop-icon[data-app="${df.app}"]`);
-                if (icon) icon.classList.add('hidden');
-            });
-        } catch(e) {}
-    }
-}
-
-function triggerGlitch() {
-    playSound('glitch');
-    
-    const desktop = document.getElementById('desktop');
-    if (!desktop) return;
-    
-    desktop.classList.add('glitch-effect');
-    
-    const texts = document.querySelectorAll('.icon-label, .window-title, .system-popup-content');
-    texts.forEach(text => {
-        text.classList.add('glitch-text');
-        setTimeout(() => text.classList.remove('glitch-text'), 300);
-    });
-    
-    let flashCount = 0;
-    const flashInterval = setInterval(() => {
-        const overlay = document.createElement('div');
-        overlay.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.1);
-            pointer-events: none;
-            z-index: 9999;
-        `;
-        document.body.appendChild(overlay);
-        setTimeout(() => overlay.remove(), 50);
-        
-        flashCount++;
-        if (flashCount >= 5) clearInterval(flashInterval);
-    }, 80);
-    
-    setTimeout(() => {
-        desktop.classList.remove('glitch-effect');
-    }, 500);
-}
-
 function initEvents() {
+    // 桌面图标点击
     document.querySelectorAll('.desktop-icon').forEach(icon => {
         icon.addEventListener('click', (e) => {
             e.stopPropagation();
             const app = icon.dataset.app;
-            if (app) {
+            if (app && !icon.classList.contains('hidden')) {
                 playSound('click');
                 openApp(app);
             }
         });
     });
     
+    // 开始菜单
     const startBtn = document.getElementById('start-button');
     const startMenu = document.getElementById('start-menu');
     if (startBtn) {
@@ -306,6 +111,7 @@ function initEvents() {
         }
     });
     
+    // 开始菜单项
     document.querySelectorAll('.start-menu-item[data-app]').forEach(item => {
         item.addEventListener('click', () => {
             const app = item.dataset.app;
@@ -314,11 +120,12 @@ function initEvents() {
         });
     });
     
+    // 关机
     const shutdownBtn = document.getElementById('shutdown');
     if (shutdownBtn) {
         shutdownBtn.addEventListener('click', () => {
             playSound('shutdown');
-            setTimeout(() => { window.location.reload(); }, 500);
+            setTimeout(() => { location.reload(); }, 500);
         });
     }
 }
@@ -517,44 +324,8 @@ function loadLogs(container) {
 
 function loadNotepad(container) {
     const saved = localStorage.getItem('hee_notepad') || '';
-    const userName = localStorage.getItem('hee_username') || '你';
-    container.innerHTML = `
-        <textarea class="notepad-textarea" id="notepad-text" placeholder="写点什么...">${escapeHtml(saved)}</textarea>
-        <div style="margin-top:8px;"><button class="system-popup-btn" id="save-notepad">保存</button></div>
-        <div id="cursor-follower" style="position:relative; margin-top:8px; font-size:11px; color:#5f8b6f; display:none;">✍️ ${userName}在写...</div>
-    `;
+    container.innerHTML = `<textarea class="notepad-textarea" id="notepad-text" placeholder="写点什么..." style="width:100%; height:200px; background:#0a0a10; border:1px solid #2a2a3a; color:#c0c0c0; padding:10px;">${escapeHtml(saved)}</textarea><div style="margin-top:8px;"><button class="system-popup-btn" id="save-notepad">保存</button></div>`;
     const textarea = container.querySelector('#notepad-text');
-    const follower = container.querySelector('#cursor-follower');
-    let typingTimer = null;
-    
-    textarea.addEventListener('input', () => {
-        playSound('typing');
-        
-        if (follower) {
-            follower.style.display = 'block';
-            clearTimeout(typingTimer);
-            typingTimer = setTimeout(() => {
-                follower.style.display = 'none';
-            }, 1000);
-        }
-        
-        const text = textarea.value.toLowerCase();
-        if (text.includes('heeseung') || text.includes('羲承')) {
-            setTimeout(() => {
-                showHeeseungPopup(`你写下了我的名字。`, [{ text: '...', reply: '你在想我吗。', residue: 2 }]);
-            }, 1000);
-        }
-        if (text.includes('miss') || text.includes('想')) {
-            setTimeout(() => {
-                showHeeseungPopup(`你说你想我。`, [{ text: '...', reply: '我也想你。', residue: 3 }]);
-            }, 2000);
-        }
-        
-        if (text.length >= 100) {
-            Achievements?.trigger('notepad_write');
-        }
-    });
-    
     container.querySelector('#save-notepad').addEventListener('click', () => {
         localStorage.setItem('hee_notepad', textarea.value);
         playSound('click');
@@ -563,22 +334,21 @@ function loadNotepad(container) {
 }
 
 function loadPaint(container) {
-    container.innerHTML = `<div class="paint-tools"><button class="paint-tool" data-tool="pen">✏️ 笔</button><button class="paint-tool" data-tool="eraser">🧽 橡皮</button><button id="clear-canvas">🗑️ 清空</button></div><canvas id="paint-canvas" width="400" height="300" style="border:1px solid #2a2a3a; background:#fff;"></canvas>`;
+    container.innerHTML = `<div><canvas id="paint-canvas" width="400" height="300" style="border:1px solid #2a2a3a; background:#fff;"></canvas><br><button id="clear-canvas" class="system-popup-btn">清空</button></div>`;
     const canvas = container.querySelector('#paint-canvas');
     const ctx = canvas.getContext('2d');
-    let drawing = false, tool = 'pen';
+    let drawing = false;
     canvas.addEventListener('mousedown', () => drawing = true);
     canvas.addEventListener('mouseup', () => drawing = false);
     canvas.addEventListener('mousemove', (e) => {
         if(!drawing) return;
         const rect = canvas.getBoundingClientRect();
         const x = e.clientX - rect.left, y = e.clientY - rect.top;
-        if(tool === 'pen') { ctx.fillStyle = '#000'; ctx.fillRect(x, y, 2, 2); }
-        else ctx.clearRect(x-5, y-5, 10, 10);
+        ctx.fillStyle = '#000';
+        ctx.fillRect(x, y, 2, 2);
         playSound('typing');
     });
-    container.querySelectorAll('.paint-tool').forEach(btn => btn.addEventListener('click', () => { tool = btn.dataset.tool; playSound('click'); }));
-    container.querySelector('#clear-canvas').addEventListener('click', () => { ctx.clearRect(0,0,canvas.width,canvas.height); playSound('delete'); Achievements?.trigger('drawing'); });
+    container.querySelector('#clear-canvas').addEventListener('click', () => { ctx.clearRect(0,0,canvas.width,canvas.height); playSound('delete'); });
 }
 
 function loadCalculator(container) {
@@ -595,10 +365,8 @@ function loadCalculator(container) {
         display = String(result);
         first = null; op = null; wait = false;
         update();
-        if(result === 5254 || display === '5254') { showHeeseungPopup('你还记得这个数字。', [{ text:'...', reply:'你以前告诉我的。', residue:2 }]); Achievements?.trigger('calculator_secret'); }
-        if(result === 20241231 || display === '20241231') showHeeseungPopup('最后一天。', [{ text:'什么意思？', reply:'我最后一次见到你的日子。', residue:3 }]);
     };
-    container.innerHTML = `<div class="calculator"><div class="calc-display" id="calc-display">0</div><div class="calc-buttons"><button class="calc-btn" data-num="7">7</button><button class="calc-btn" data-num="8">8</button><button class="calc-btn" data-num="9">9</button><button class="calc-btn" data-op="/">/</button><button class="calc-btn" data-num="4">4</button><button class="calc-btn" data-num="5">5</button><button class="calc-btn" data-num="6">6</button><button class="calc-btn" data-op="*">*</button><button class="calc-btn" data-num="1">1</button><button class="calc-btn" data-num="2">2</button><button class="calc-btn" data-num="3">3</button><button class="calc-btn" data-op="-">-</button><button class="calc-btn" data-num="0">0</button><button class="calc-btn" data-clear="C">C</button><button class="calc-btn" data-equal="=">=</button><button class="calc-btn" data-op="+">+</button></div></div>`;
+    container.innerHTML = `<div class="calculator"><div class="calc-display" id="calc-display" style="background:#000; padding:10px; text-align:right;">0</div><div style="display:grid; grid-template-columns:repeat(4,1fr); gap:5px; margin-top:10px;"><button class="calc-btn" data-num="7">7</button><button class="calc-btn" data-num="8">8</button><button class="calc-btn" data-num="9">9</button><button class="calc-btn" data-op="/">/</button><button class="calc-btn" data-num="4">4</button><button class="calc-btn" data-num="5">5</button><button class="calc-btn" data-num="6">6</button><button class="calc-btn" data-op="*">*</button><button class="calc-btn" data-num="1">1</button><button class="calc-btn" data-num="2">2</button><button class="calc-btn" data-num="3">3</button><button class="calc-btn" data-op="-">-</button><button class="calc-btn" data-num="0">0</button><button class="calc-btn" data-clear="C">C</button><button class="calc-btn" data-equal="=">=</button><button class="calc-btn" data-op="+">+</button></div></div>`;
     const dispDiv = container.querySelector('#calc-display');
     container.querySelectorAll('.calc-btn').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -613,102 +381,75 @@ function loadCalculator(container) {
 }
 
 function loadTerminal(container) {
-    container.innerHTML = `<div class="terminal-window"><div class="terminal-output" id="terminal-output"><div class="terminal-line">Microsoft Windows [版本 10.0.19045]</div><div class="terminal-line">C:\\Users\\${currentUserId}></div></div><div class="terminal-input-line"><span class="terminal-prompt">C:\\Users\\${currentUserId}></span><input type="text" class="terminal-input" id="terminal-input"></div></div>`;
-    const output = container.querySelector('#terminal-output');
-    const input = container.querySelector('#terminal-input');
-    let cmdCount = 0;
+    container.innerHTML = `<div style="background:#000; padding:10px; font-family:monospace; height:300px; overflow-y:auto;" id="term-output"><div>C:\\Users\\${currentUserId}></div></div><div style="display:flex; margin-top:10px;"><span style="color:#5f8b6f;">C:\\Users\\${currentUserId}></span><input type="text" id="term-input" style="flex:1; background:transparent; border:none; color:#c0c0c0; outline:none;"></div>`;
+    const output = container.querySelector('#term-output');
+    const input = container.querySelector('#term-input');
     input.addEventListener('keypress', (e) => {
         if(e.key === 'Enter') {
             const cmd = input.value.toLowerCase();
-            playSound('keyboard');
-            output.innerHTML += `<div class="terminal-line">C:\\Users\\${currentUserId}> ${escapeHtml(input.value)}</div>`;
+            output.innerHTML += `<div>C:\\Users\\${currentUserId}> ${escapeHtml(input.value)}</div>`;
             let resp = '';
             if(cmd === 'whoami') resp = 'heeseung_pc/user';
-            else if(cmd === 'dir') resp = ' 2025-01-02  04:13               123 welcome.txt\n 2025-01-03  00:13    <DIR>          heeseung_secret';
-            else if(cmd === 'help') { resp = 'HELP FROM H: "你会想起来的"'; showHeeseungPopup('需要帮助吗。我在。', [{ text:'...', reply:'我会帮你。', residue:1 }]); }
-            else if(cmd === 'heeseung') { resp = '你是谁？\n> 你认识的人。'; showHeeseungPopup('你以前叫我羲承。', [{ text:'...', reply:'嗯。', residue:2 }]); Achievements?.trigger('run_heeseung'); }
+            else if(cmd === 'dir') resp = 'welcome.txt\nheeseung_secret';
+            else if(cmd === 'help') resp = 'HELP FROM H: "你会想起来的"';
+            else if(cmd === 'heeseung') resp = '你是谁？\n> 你认识的人。';
             else if(cmd === 'cls') { output.innerHTML = ''; input.value = ''; return; }
             else resp = `'${cmd}' 不是内部或外部命令。`;
-            if(resp) output.innerHTML += `<div class="terminal-line" style="color:#5f8b6f;">${resp}</div>`;
+            if(resp) output.innerHTML += `<div style="color:#5f8b6f;">${resp}</div>`;
             input.value = '';
             output.scrollTop = output.scrollHeight;
-            cmdCount++;
-            if(cmdCount >= 5) Achievements?.trigger('terminal_master');
         }
     });
     input.focus();
 }
 
 function loadCalendar(container) {
-    let year = 2024, month = 11;
-    const render = () => {
-        const firstDay = new Date(year, month, 1).getDay();
-        const days = new Date(year, month+1, 0).getDate();
-        let html = `<div class="calendar-header"><span class="calendar-nav" id="prev-month">◀</span><span class="calendar-month">${year}年${month+1}月</span><span class="calendar-nav" id="next-month">▶</span></div><div class="calendar-grid"><div>日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div>`;
-        for(let i=0;i<firstDay;i++) html += '<div class="calendar-day other-month"></div>';
-        for(let d=1;d<=days;d++) { const marked = (year===2024 && month===11 && d===31) || (year===2024 && month===2 && d===11); html += `<div class="calendar-day ${marked?'marked':''}">${d}</div>`; }
-        html += '</div>';
-        container.innerHTML = html;
-        document.getElementById('prev-month')?.addEventListener('click', () => { month--; if(month<0){month=11;year--;} render(); playSound('click'); });
-        document.getElementById('next-month')?.addEventListener('click', () => { month++; if(month>11){month=0;year++;} render(); playSound('click'); });
-    };
-    render();
+    container.innerHTML = `<div style="text-align:center; padding:20px;">📅 日历功能<br>2024年12月31日被标记了</div>`;
 }
 
 function loadAlarm(container) {
-    container.innerHTML = `<div class="alarm-list"><div class="alarm-item"><div><div class="alarm-time">04:00</div><div class="alarm-label">以前这时候我们都在</div></div><button class="alarm-edit system-popup-btn">编辑</button></div></div>`;
-    container.querySelector('.alarm-edit')?.addEventListener('click', () => { showHeeseungPopup('你想改这个时间吗？', [{ text:'不改了', reply:'嗯。', residue:0 }]); Achievements?.trigger('alarm_set'); });
+    container.innerHTML = `<div style="padding:20px;">⏰ 闹钟<br>预设时间: 04:00<br>「以前这时候我们都在」</div>`;
 }
 
 function loadContacts(container) {
-    container.innerHTML = `<div class="contact-card" id="heeseung-contact"><div class="contact-avatar">👤</div><div class="contact-info"><div class="contact-name">Heeseung</div><div class="contact-status">离线 · 很久以前</div></div></div>`;
-    container.querySelector('#heeseung-contact').addEventListener('click', () => { showHeeseungPopup('你想联系我吗。', [{ text:'你在吗', reply:'我一直在。', residue:2 },{ text:'我想起来了', reply:'真的吗。', residue:3 }]); Achievements?.trigger('contact_click'); });
+    container.innerHTML = `<div class="contact-card" style="padding:20px; cursor:pointer;" onclick="showHeeseungPopup('你想联系我吗？', [{ text:'在吗', reply:'我一直在。', residue:2 }])"><div style="display:flex; align-items:center; gap:16px;"><div style="font-size:40px;">👤</div><div><div style="font-weight:bold;">Heeseung</div><div style="font-size:11px; color:#888;">离线 · 很久以前</div></div></div></div>`;
 }
 
 function loadEmail(container) {
-    container.innerHTML = `<div class="email-list"><div class="email-item" onclick="viewEmail()"><div class="email-sender">📧 heeseung@past.com</div><div class="email-subject">如果有一天你打开这台电脑</div><div class="email-date">2024-12-31</div></div></div>`;
+    container.innerHTML = `<div style="padding:20px;"><div class="email-item" style="padding:10px; background:#1a1a2a; cursor:pointer;" onclick="viewEmail()">📧 heeseung@past.com - 如果有一天你打开这台电脑</div></div>`;
 }
 
 function loadRun(container) {
-    container.innerHTML = `<input type="text" class="run-input" id="run-command" placeholder="输入命令..."><div style="display:flex; gap:8px;"><button class="system-popup-btn" id="run-ok">确定</button><button class="system-popup-btn" id="run-cancel">取消</button></div>`;
-    const input = container.querySelector('#run-command');
-    container.querySelector('#run-ok').addEventListener('click', () => {
+    container.innerHTML = `<input type="text" id="run-cmd" style="width:100%; padding:8px; background:#0a0a10; border:1px solid #2a2a3a; color:#c0c0c0;" placeholder="输入命令..."><button id="run-btn" style="margin-top:10px; padding:6px 12px;">运行</button>`;
+    const input = container.querySelector('#run-cmd');
+    container.querySelector('#run-btn').addEventListener('click', () => {
         const cmd = input.value.toLowerCase();
-        if(cmd === 'heeseung' || cmd === 'hee') { showHeeseungPopup('你在叫我吗。', [{ text:'嗯', reply:'我在。', residue:2 }]); Achievements?.trigger('run_heeseung'); }
-        else if(cmd === 'memory') showHeeseungPopup('memory。你想找回记忆吗。', [{ text:'嗯', reply:'我会帮你的。', residue:2 }]);
+        if(cmd === 'heeseung') showHeeseungPopup('你在叫我吗。', [{ text:'嗯', reply:'我在。', residue:2 }]);
         else showHeeseungPopup(`'${cmd}' 不是有效命令。`, [{ text:'知道了', reply:'...', residue:0 }]);
         input.value = '';
     });
 }
 
 function loadBrowser(container) {
-    container.innerHTML = `<div style="margin-bottom:12px;"><div style="background:#2a2a3a; padding:8px;"><input type="text" id="browser-url" value="about:blank" style="width:100%; background:#1a1a2a; border:none; color:#c0c0c0; padding:4px;"></div></div><div id="browser-content" style="padding:20px; text-align:center;"><div class="favorite-item" onclick="openForum()" style="padding:12px; background:#1a1a2a; cursor:pointer;">🌐 HEE · 私人论坛</div></div>`;
+    container.innerHTML = `<div style="padding:20px; text-align:center;"><div class="favorite-item" onclick="openForum()" style="padding:12px; background:#1a1a2a; cursor:pointer;">🌐 HEE · 私人论坛</div></div>`;
 }
 
 function loadMyComputer(container) {
-    container.innerHTML = `<div style="padding:10px;"><div>💻 系统: Windows HE Edition</div><div>🖥️ 设备名: HEESEUNG-PC</div><div>👤 用户: ${currentUserId}</div><div>🔌 远程连接: ${currentDay>=3?'已建立':'无'}</div></div>`;
+    container.innerHTML = `<div style="padding:20px;"><div>💻 系统: Windows HE Edition</div><div>🖥️ 设备名: HEESEUNG-PC</div><div>👤 用户: ${currentUserId}</div><div>🔌 远程连接: ${currentDay>=3?'已建立':'无'}</div></div>`;
 }
 
 function loadRecycle(container) {
-    const recycleItems = localStorage.getItem('hee_recycle_items') || '[]';
-    let items = [];
-    try { items = JSON.parse(recycleItems); } catch(e) {}
-    let html = '';
-    if (items.length === 0) {
-        html = '<div style="padding:20px; text-align:center; color:#888;">回收站是空的</div>';
-    } else {
-        items.forEach(item => {
-            html += `<div style="padding:12px; border-bottom:1px solid #2a2a3a;"><div>🗑️ ${escapeHtml(item.name)}</div><div style="font-size:10px; color:#666;">${item.date.substring(0,10)} · 被${item.deletedBy === 'Heeseung' ? 'Heeseung' : '你'}删除</div></div>`;
-        });
-    }
-    container.innerHTML = html;
+    container.innerHTML = `<div style="padding:20px; color:#888; text-align:center;">回收站是空的</div>`;
 }
 
 function loadWelcome(container) {
-    container.innerHTML = `<div style="text-align:center; padding:20px;"><div style="font-size:24px;">📄 欢迎.txt</div><div style="line-height:1.8;">你打开了这台电脑。<br><br>……你终于打开了。<br><br>我会让你想起来的。<br><br><span style="color:#5f8b6f;">—— 一个陌生人</span></div></div>`;
+    container.innerHTML = `<div style="text-align:center; padding:40px;"><div style="font-size:24px;">📄 欢迎.txt</div><div style="line-height:1.8; margin-top:20px;">你打开了这台电脑。<br><br>……你终于打开了。<br><br>我会让你想起来的。<br><br><span style="color:#5f8b6f;">—— 一个陌生人</span></div></div>`;
 }
 
-function showWelcomeFile() { playSound('notify'); document.getElementById('welcome-file')?.classList.remove('hidden'); }
+function showWelcomeFile() { 
+    playSound('notify'); 
+    document.getElementById('welcome-file')?.classList.remove('hidden'); 
+}
 
 function showHeeseungPopup(message, options) {
     playSound('message');
@@ -716,6 +457,8 @@ function showHeeseungPopup(message, options) {
     message = message.replace(/你/g, userName);
     
     const container = document.getElementById('popup-container');
+    if (!container) return;
+    
     const popup = document.createElement('div');
     popup.className = 'system-popup';
     popup.innerHTML = `<div class="system-popup-header"><span>[ 悄悄话 ]</span><button class="system-popup-close">✕</button></div><div class="system-popup-content">${escapeHtml(message)}</div><div class="system-popup-buttons" id="popup-buttons"></div>`;
@@ -723,9 +466,7 @@ function showHeeseungPopup(message, options) {
     options.forEach(opt => {
         const btn = document.createElement('button');
         btn.className = 'system-popup-btn';
-        let btnText = opt.text;
-        btnText = btnText.replace(/你/g, userName);
-        btn.textContent = btnText;
+        btn.textContent = opt.text;
         btn.addEventListener('click', () => {
             playSound('click');
             popup.remove();
@@ -741,7 +482,6 @@ function showHeeseungPopup(message, options) {
                 residue = Math.max(-10, Math.min(30, residue + (opt.residue || 0)));
                 localStorage.setItem('hee_residue', residue);
                 updateResidueDisplay();
-                if(currentDay >= 7) checkEnding();
             }, 2000);
         });
         btnsDiv.appendChild(btn);
@@ -751,26 +491,21 @@ function showHeeseungPopup(message, options) {
     setTimeout(() => { if(popup.parentElement) popup.remove(); }, 30000);
 }
 
-function checkEnding() {
-    let ending = '';
-    if(residue >= 21) ending = '❤️ 真结局 · 痕迹\n\n我本来想删掉一切的。但你来了。……所以我不删了。';
-    else if(residue >= 13) ending = '💬 好结局 · 我在\n\n我没有离开。只是不知道该怎么面对一个……真的看见我的人。';
-    else if(residue >= 5) ending = '😐 普通结局 · 余温\n\n他还在这里。只是不再说话了。';
-    else if(residue >= 0) ending = '❌ 假结局 · 回音\n\n他好像不在这里了。';
-    else ending = '💀 假结局 · 格式化\n\n这次真的删掉了。';
-    setTimeout(() => showHeeseungPopup(ending, [{ text:'……', reply:'', residue:0 }]), 1000);
-}
-
 function updateTime() {
     const now = new Date();
-    document.getElementById('tray-time').textContent = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+    const timeEl = document.getElementById('tray-time');
+    if (timeEl) timeEl.textContent = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
 }
 
-function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => m==='&'?'&amp;':m==='<'?'&lt;':'&gt;'); }
+function escapeHtml(str) { 
+    if (!str) return ''; 
+    return str.replace(/[&<>]/g, m => m==='&'?'&amp;':m==='<'?'&lt;':'&gt;'); 
+}
 
+// 全局函数
 window.viewPhoto = function(id) { showHeeseungPopup('你看了这张照片。', [{ text:'好看', reply:'你以前也这么说。', residue:1 }]); };
 window.viewStickyNote = function(id) {
-    const notes = {1:'今天发生了很好的事。想让你知道。\n\n—— H',2:'记得关窗。\n\n—— H',3:'你什么时候回来。\n\n—— H',4:'她打开了电脑。\n\n—— H',5:'她看到了。\n\n—— H'};
+    const notes = {1:'今天发生了很好的事。\n\n—— H',2:'记得关窗。\n\n—— H',3:'你什么时候回来。\n\n—— H',4:'她打开了电脑。\n\n—— H',5:'她看到了。\n\n—— H'};
     showHeeseungPopup(`📌 便签内容\n\n${notes[id]}`, [{ text:'这是你写的？', reply:'嗯。', residue:1 }]);
 };
 window.viewEmail = function() { showHeeseungPopup('如果有一天你打开这台电脑。\n你会记得我吗。', [{ text:'我记得', reply:'谢谢。', residue:3 }]); };
