@@ -1,0 +1,165 @@
+{
+  "logs": [
+    {
+      "timestamp": "2025-01-02 21:47:22",
+      "level": "INFO",
+      "source": "SYSTEM",
+      "message": "系统启动",
+      "dayUnlock": 1
+    },
+    {
+      "timestamp": "2025-01-02 21:47:23",
+      "level": "INFO",
+      "source": "SYSTEM",
+      "message": "用户登录",
+      "dayUnlock": 1
+    },
+    {
+      "timestamp": "2025-01-02 21:47:25",
+      "level": "INFO",
+      "source": "EXPLORER",
+      "message": "桌面已加载",
+      "dayUnlock": 1
+    },
+    {
+      "timestamp": "2025-01-03 00:13:05",
+      "level": "WARNING",
+      "source": "NETWORK",
+      "message": "远程连接已建立",
+      "dayUnlock": 3
+    },
+    {
+      "timestamp": "2025-01-03 00:13:06",
+      "level": "WARNING",
+      "source": "NETWORK",
+      "message": "来源：未知",
+      "dayUnlock": 3
+    },
+    {
+      "timestamp": "2025-01-03 00:13:07",
+      "level": "WARNING",
+      "source": "SECURITY",
+      "message": "未知设备正在访问此计算机",
+      "dayUnlock": 3
+    },
+    {
+      "timestamp": "2025-01-03 00:13:42",
+      "level": "INFO",
+      "source": "FILE",
+      "message": "文件「日记本.txt」已被查看",
+      "dayUnlock": 3
+    },
+    {
+      "timestamp": "2025-01-04 02:34:18",
+      "level": "WARNING",
+      "source": "NETWORK",
+      "message": "远程连接已建立",
+      "dayUnlock": 4
+    },
+    {
+      "timestamp": "2025-01-04 02:34:19",
+      "level": "INFO",
+      "source": "FILE",
+      "message": "文件夹「照片」已被查看",
+      "dayUnlock": 4
+    },
+    {
+      "timestamp": "2025-01-04 02:35:01",
+      "level": "INFO",
+      "source": "FILE",
+      "message": "文件「天空.jpg」已被打开",
+      "dayUnlock": 4
+    },
+    {
+      "timestamp": "2025-01-05 03:12:44",
+      "level": "WARNING",
+      "source": "NETWORK",
+      "message": "远程连接已建立",
+      "dayUnlock": 5
+    },
+    {
+      "timestamp": "2025-01-05 03:13:00",
+      "level": "INFO",
+      "source": "FILE",
+      "message": "文件夹「便签」已被查看",
+      "dayUnlock": 5
+    },
+    {
+      "timestamp": "2025-01-06 01:45:22",
+      "level": "WARNING",
+      "source": "NETWORK",
+      "message": "远程连接已建立",
+      "dayUnlock": 6
+    },
+    {
+      "timestamp": "2025-01-06 01:46:00",
+      "level": "INFO",
+      "source": "FILE",
+      "message": "文件夹「收藏夹」已被查看",
+      "dayUnlock": 6
+    },
+    {
+      "timestamp": "2025-01-06 01:47:30",
+      "level": "INFO",
+      "source": "PROCESS",
+      "message": "进程「备忘录.exe」已启动",
+      "dayUnlock": 6
+    },
+    {
+      "timestamp": "2025-01-07 00:00:01",
+      "level": "WARNING",
+      "source": "SYSTEM",
+      "message": "系统时间异常：检测到时间回拨",
+      "dayUnlock": 7
+    },
+    {
+      "timestamp": "2025-01-07 00:00:02",
+      "level": "ERROR",
+      "source": "SECURITY",
+      "message": "检测到未经授权的远程操作",
+      "dayUnlock": 7
+    },
+    {
+      "timestamp": "2025-01-07 00:00:03",
+      "level": "WARNING",
+      "source": "NETWORK",
+      "message": "远程连接：HEESEUNG-PC",
+      "dayUnlock": 7
+    },
+    {
+      "timestamp": "2025-01-07 04:13:00",
+      "level": "INFO",
+      "source": "SYSTEM",
+      "message": "上次关机时间：2024-12-31 04:13:00",
+      "dayUnlock": 7
+    },
+    {
+      "timestamp": "2025-01-07 04:13:01",
+      "level": "ERROR",
+      "source": "SYSTEM",
+      "message": "时间线不一致，建议重启",
+      "dayUnlock": 7
+    }
+  ],
+  "securityAlerts": [
+    {
+      "timestamp": "2025-01-03 00:13:05",
+      "alert": "远程访问告警",
+      "details": "未知IP正在访问此设备",
+      "severity": "HIGH"
+    },
+    {
+      "timestamp": "2025-01-07 00:00:02",
+      "alert": "数据完整性告警",
+      "details": "系统文件可能被篡改",
+      "severity": "CRITICAL"
+    }
+  ],
+  "hiddenLog": {
+    "timestamp": "2024-12-31 04:13:00",
+    "level": "SECRET",
+    "source": "HEESEUNG",
+    "message": "最后一次登录。如果看到这条日志，说明她回来了。",
+    "dayUnlock": 7
+  }
+}
