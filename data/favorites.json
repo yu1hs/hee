@@ -1,0 +1,94 @@
+{
+  "music": [
+    {
+      "name": "适合凌晨听",
+      "note": "你以前推荐的。凌晨的时候，这首歌最好听。",
+      "heeseungNote": "你第一次分享给我的歌。",
+      "dayUnlock": 3
+    },
+    {
+      "name": "不适合听第二遍",
+      "note": "第一次听的时候觉得这是写给别人的。后来发现……写给谁都行。",
+      "heeseungNote": "其实是写给你的。",
+      "dayUnlock": 4
+    },
+    {
+      "name": "这首不常听",
+      "note": "但每次听都会想起某天。那天你在。",
+      "heeseungNote": "我们那天一起听的。",
+      "dayUnlock": 5
+    },
+    {
+      "name": "凌晨三点",
+      "note": "歌词很奇怪。但旋律很好。像凌晨的风。",
+      "heeseungNote": "你凌晨三点给我发过这首歌。",
+      "dayUnlock": 5
+    }
+  ],
+  "movies": [
+    {
+      "name": "只看过片段",
+      "note": "结局不喜欢。但前面的部分看了很多遍。",
+      "heeseungNote": "我们没看完。",
+      "dayUnlock": 3
+    },
+    {
+      "name": "结局不好",
+      "note": "第二次看比第一次好。第三次比第二次差一点。",
+      "heeseungNote": "你说过不喜欢这个结局。",
+      "dayUnlock": 4
+    },
+    {
+      "name": "不知道在讲什么",
+      "note": "画面很好看。够了。",
+      "heeseungNote": "你睡着了我还在看。",
+      "dayUnlock": 5
+    },
+    {
+      "name": "夏天的电影",
+      "note": "很吵。但很热闹。适合一个人看。",
+      "heeseungNote": "你说想和我一起看。",
+      "dayUnlock": 6
+    }
+  ],
+  "photos": [
+    {
+      "name": "天气很好那天",
+      "note": "阳光很好。风也刚好。",
+      "heeseungNote": "你笑着的那天。",
+      "dayUnlock": 3
+    },
+    {
+      "name": "没人",
+      "note": "只有空荡荡的房间。",
+      "heeseungNote": "你不在的时候拍的。",
+      "dayUnlock": 4
+    },
+    {
+      "name": "那天本来想发出去的",
+      "note": "后来忘了。或者是不敢。",
+      "heeseungNote": "发给你的。没发出去。",
+      "dayUnlock": 5
+    },
+    {
+      "name": "凌晨的窗户",
+      "note": "外面很黑。只有路灯亮着。",
+      "heeseungNote": "你问我为什么不睡。",
+      "dayUnlock": 6
+    }
+  ],
+  "quotes": [
+    {
+      "name": "「你找到的不是一个人的秘密」",
+      "note": "是一个人愿意留下来的痕迹。",
+      "heeseungNote": "这是我想对你说的。",
+      "dayUnlock": 6
+    },
+    {
+      "name": "「如果有一天你打开这台电脑」",
+      "note": "你会记得我吗。",
+      "heeseungNote": "我每天都在想这个问题。",
+      "dayUnlock": 7
+    }
+  ]
+}
