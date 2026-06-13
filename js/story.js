@@ -1,14 +1,21 @@
-/* story.js - 剧情推进系统 */
-// 管理7天剧情、对话、残响值变化
+/* story.js - 剧情推进系统（完整版） */
 
-// ========== 剧情状态 ==========
-let storyDay = parseInt(localStorage.getItem('hee_day') || '1');
+// ========== 确保天数从第1天开始 ==========
+let savedStoryDay = parseInt(localStorage.getItem('hee_day') || '1');
+if (savedStoryDay < 1 || savedStoryDay > 7 || isNaN(savedStoryDay)) {
+    savedStoryDay = 1;
+    localStorage.setItem('hee_day', '1');
+    console.log('Story: 天数已重置为1');
+}
+let storyDay = savedStoryDay;
 let storyResidue = parseInt(localStorage.getItem('hee_residue') || '0');
 let currentConversation = null;
 let conversationHistory = [];
 let todayReplies = 0;
 let lastMessageTime = 0;
 let waitingForReply = false;
+
+console.log('Story: 当前天数', storyDay, '残响值', storyResidue);
 
 // ========== 7天对话数据 ==========
 const dayDialogues = {
@@ -141,21 +148,21 @@ const dayDialogues = {
 
 // ========== 初始化剧情 ==========
 function initStory() {
-    // 更新显示
     updateStoryUI();
-    
-    // 检查是否新的一天
     checkNewDay();
-    
-    // 监听凌晨时段
     checkMidnight();
     setInterval(checkMidnight, 60000);
-    
-    // 监听不活跃
     startInactivityCheck();
+    
+    // 如果是第1天且还没有发送过消息，触发第一天消息
+    const todayMessageSent = localStorage.getItem(`hee_day${storyDay}_sent`);
+    if (storyDay === 1 && !todayMessageSent && !waitingForReply) {
+        setTimeout(() => {
+            triggerNewDayMessage();
+        }, 8000);
+    }
 }
 
-// 更新UI显示
 function updateStoryUI() {
     let display = document.getElementById('story-day-display');
     if (!display) {
@@ -167,19 +174,16 @@ function updateStoryUI() {
     display.textContent = `第${storyDay}/7天 · 残响:${storyResidue}`;
 }
 
-// 检查新的一天
 function checkNewDay() {
     const lastDate = localStorage.getItem('hee_last_story_date');
     const today = new Date().toDateString();
     
     if (lastDate !== today && storyDay < 7) {
-        // 新的一天，推进剧情
         storyDay++;
         localStorage.setItem('hee_day', storyDay);
         localStorage.setItem('hee_last_story_date', today);
         updateStoryUI();
         
-        // 发送新一天的第一条消息
         if (storyDay <= 7 && dayDialogues[storyDay]) {
             setTimeout(() => {
                 triggerNewDayMessage();
@@ -188,22 +192,21 @@ function checkNewDay() {
     }
 }
 
-// 触发新一天的消息
 function triggerNewDayMessage() {
     const dialogue = dayDialogues[storyDay];
     if (!dialogue) return;
     
-    // 只有当他还没发过今天的消息时才发送
     const todayMessageSent = localStorage.getItem(`hee_day${storyDay}_sent`);
-    if (!todayMessageSent) {
+    if (!todayMessageSent && !waitingForReply) {
         showStoryMessage(dialogue.firstMessage, dialogue.options);
         localStorage.setItem(`hee_day${storyDay}_sent`, 'true');
         todayReplies = 0;
     }
 }
 
-// 显示剧情消息
 function showStoryMessage(message, options) {
+    if (waitingForReply) return;
+    waitingForReply = true;
     playSound('message');
     
     const container = document.getElementById('popup-container');
@@ -237,29 +240,28 @@ function showStoryMessage(message, options) {
     
     popup.querySelector('.system-popup-close').addEventListener('click', () => {
         playSound('close');
+        waitingForReply = false;
         popup.remove();
     });
     
     container.appendChild(popup);
-    
-    // 记录历史
     conversationHistory.push({ day: storyDay, message: message, isHeeseung: true });
 }
 
-// 处理回复
 function handleStoryReply(option, popup) {
-    // 移除弹窗
     popup.remove();
     
-    // 记录用户回复
     conversationHistory.push({ day: storyDay, message: option.text, isHeeseung: false });
     
-    // 更新残响值
     storyResidue = Math.max(-10, Math.min(30, storyResidue + (option.residue || 0)));
     localStorage.setItem('hee_residue', storyResidue);
     updateStoryUI();
     
-    // 显示他的回复
+    // 触发成就
+    if (storyDay === 1 && option.residue !== 0) {
+        Achievements?.trigger('first_reply');
+    }
+    
     setTimeout(() => {
         const container = document.getElementById('popup-container');
         if (!container) return;
@@ -284,14 +286,13 @@ function handleStoryReply(option, popup) {
         
         container.appendChild(replyPopup);
         
-        // 自动移除
         setTimeout(() => {
             if (replyPopup.parentElement) replyPopup.remove();
+            waitingForReply = false;
         }, 8000);
         
         todayReplies++;
         
-        // 检查后续对话
         const dialogue = dayDialogues[storyDay];
         if (dialogue && dialogue.followUps) {
             for (let follow of dialogue.followUps) {
@@ -300,7 +301,9 @@ function handleStoryReply(option, popup) {
                     if (!localStorage.getItem(followKey)) {
                         localStorage.setItem(followKey, 'true');
                         setTimeout(() => {
-                            showStoryMessage(follow.message, follow.options);
+                            if (!waitingForReply) {
+                                showStoryMessage(follow.message, follow.options);
+                            }
                         }, 5000);
                     }
                     break;
@@ -308,48 +311,54 @@ function handleStoryReply(option, popup) {
             }
         }
         
-        // 检查结局
         if (option.isEnding || storyDay >= 7) {
             setTimeout(() => {
                 checkStoryEnding();
             }, 3000);
         }
         
-        // 检查是否推进天数
         if (todayReplies >= 2 && storyDay < 7) {
             const lastReplyDate = localStorage.getItem('hee_last_reply_date');
             const today = new Date().toDateString();
             if (lastReplyDate !== today) {
                 localStorage.setItem('hee_last_reply_date', today);
-                // 将在明天新的一天推进
             }
         }
     }, 2000);
 }
 
-// 结局判定
 function checkStoryEnding() {
     let ending = '';
+    let endingType = '';
     let endingMessage = '';
     
     if (storyResidue >= 21) {
+        endingType = 'true_ending';
         ending = '❤️ 真结局 · 痕迹';
         endingMessage = '我本来想删掉一切的。但你来了。……所以我不删了。\n\n一个月后的凌晨4:00，电脑自己开机了。桌面出现一张新照片——他笑着看你。文件名：「我还在」。';
+        Achievements?.trigger('true_ending');
     } else if (storyResidue >= 13) {
+        endingType = 'good_ending';
         ending = '💬 好结局 · 我在';
         endingMessage = '我没有离开。只是不知道该怎么面对一个……真的看见我的人。\n\n桌面出现新文件：「我还在。等你。」日记本最后一页：「她会回来的。」';
+        Achievements?.trigger('good_ending');
     } else if (storyResidue >= 5) {
+        endingType = 'normal_ending';
         ending = '😐 普通结局 · 余温';
         endingMessage = '他还在这里。只是不再说话了。\n\n回收站里有一行字：「谢谢你记得一部分的我。」';
+        Achievements?.trigger('normal_ending');
     } else if (storyResidue >= 0) {
+        endingType = 'bad_ending';
         ending = '❌ 假结局 · 回音';
         endingMessage = '他好像不在这里了。\n\n所有文件变成灰色。重启后电脑变成全新。但你总觉得……桌面上好像少了什么。';
     } else {
+        endingType = 'bad_ending';
         ending = '💀 假结局 · 格式化';
         endingMessage = '这次真的删掉了。\n\n蓝屏。错误代码：MEMORY_NOT_FOUND。重启后桌面出现一行字：「这次真的删掉了。」所有痕迹消失。';
     }
     
     localStorage.setItem('hee_ending', ending);
+    SaveSystem?.recordEnding(endingType);
     
     setTimeout(() => {
         const container = document.getElementById('popup-container');
@@ -380,7 +389,6 @@ function checkStoryEnding() {
     }, 1000);
 }
 
-// 检查凌晨时段
 function checkMidnight() {
     const hour = new Date().getHours();
     const isMidnight = hour >= 0 && hour < 5;
@@ -410,26 +418,23 @@ function checkMidnight() {
                 });
                 container.appendChild(midnightPopup);
                 
-                // 增加残响值
                 storyResidue = Math.min(30, storyResidue + 1);
                 localStorage.setItem('hee_residue', storyResidue);
                 updateStoryUI();
+                Achievements?.trigger('midnight');
             }, 1000);
         }
     }
 }
 
-// 不活跃检查（长时间没操作，他会主动说话）
 let inactivityTimer = null;
 let lastActivity = Date.now();
 
 function startInactivityCheck() {
-    // 监听用户活动
     document.addEventListener('mousemove', resetInactivity);
     document.addEventListener('click', resetInactivity);
     document.addEventListener('keydown', resetInactivity);
     
-    // 每30秒检查一次
     setInterval(() => {
         const inactiveTime = (Date.now() - lastActivity) / 1000;
         if (inactiveTime > 120 && storyDay >= 2 && storyDay <= 6) {
@@ -467,7 +472,6 @@ function resetInactivity() {
     localStorage.removeItem('hee_inactivity_triggered');
 }
 
-// 手动触发剧情（用于测试或调试）
 function triggerStoryDay(day) {
     if (day >= 1 && day <= 7) {
         storyDay = day;
@@ -477,12 +481,10 @@ function triggerStoryDay(day) {
     }
 }
 
-// 获取残响值
 function getResidue() {
     return storyResidue;
 }
 
-// 增加残响值
 function addResidue(amount) {
     storyResidue = Math.max(-10, Math.min(30, storyResidue + amount));
     localStorage.setItem('hee_residue', storyResidue);
@@ -490,14 +492,22 @@ function addResidue(amount) {
     return storyResidue;
 }
 
-// ========== 导出全局函数 ==========
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+    });
+}
+
 window.initStory = initStory;
 window.triggerStoryDay = triggerStoryDay;
 window.getResidue = getResidue;
 window.addResidue = addResidue;
 window.checkStoryEnding = checkStoryEnding;
 
-// 自动初始化
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initStory);
 } else {
