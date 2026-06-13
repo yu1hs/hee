@@ -41,27 +41,30 @@ body {
     background-color: rgba(0,0,0,0.3);
 }
 
-/* 桌面图标区域 */
+/* 桌面图标区域 - 网格布局（像真实桌面） */
 .desktop-icons {
     position: absolute;
     top: 10px;
     left: 10px;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
+    right: 10px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(90px, 100px));
+    gap: 16px 12px;
     z-index: 10;
+    padding: 8px;
 }
 
-/* 桌面图标 */
+/* 桌面图标 - 垂直排列像真实桌面 */
 .desktop-icon {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 12px;
-    padding: 8px 12px;
+    text-align: center;
+    gap: 6px;
+    padding: 8px 6px;
     cursor: pointer;
     border-radius: 4px;
     transition: all 0.1s ease;
-    min-width: 140px;
 }
 
 .desktop-icon:hover {
@@ -75,16 +78,18 @@ body {
 }
 
 .icon-image {
-    font-size: 32px;
-    width: 40px;
+    font-size: 36px;
+    width: auto;
     text-align: center;
 }
 
 .icon-label {
-    font-size: 12px;
+    font-size: 11px;
     color: #ffffff;
     text-shadow: 1px 1px 0 #000000;
-    letter-spacing: 1px;
+    letter-spacing: 0;
+    max-width: 80px;
+    word-break: break-word;
 }
 
 /* 任务栏 */
@@ -386,6 +391,30 @@ body {
     animation: shake 0.2s 3;
 }
 
+/* 故障效果 */
+.glitch-effect {
+    animation: screenGlitch 0.3s ease-in-out;
+}
+
+@keyframes screenGlitch {
+    0% { transform: translate(0); }
+    20% { transform: translate(-2px, 1px); }
+    40% { transform: translate(2px, -1px); }
+    60% { transform: translate(-1px, 2px); }
+    80% { transform: translate(1px, -2px); }
+    100% { transform: translate(0); }
+}
+
+.glitch-text {
+    animation: textGlitch 0.2s 3;
+}
+
+@keyframes textGlitch {
+    0% { text-shadow: -1px 0 red; }
+    50% { text-shadow: 1px 0 blue; }
+    100% { text-shadow: 0 0 0; }
+}
+
 /* 打字机光标 */
 .typewriter-cursor {
     display: inline-block;
@@ -418,4 +447,17 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
     background: #5f8b6f;
+}
+
+/* 残响值显示 */
+#residue-display {
+    position: fixed;
+    bottom: 45px;
+    right: 10px;
+    font-size: 10px;
+    color: #5f8b6f;
+    z-index: 99;
+    background: rgba(0,0,0,0.7);
+    padding: 2px 8px;
+    border-radius: 4px;
 }
