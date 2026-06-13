@@ -55,11 +55,15 @@
             animation: fadeInUp 0.3s forwards;
         }
 
+        .boot-text:nth-child(2) { animation-delay: 0.2s; }
+        .boot-text:nth-child(3) { animation-delay: 0.5s; }
+        .boot-text:nth-child(4) { animation-delay: 0.8s; }
+
         .name-input-container {
             margin-top: 30px;
             opacity: 0;
             animation: fadeInUp 0.3s forwards;
-            animation-delay: 1s;
+            animation-delay: 1.2s;
         }
 
         .name-input {
@@ -126,8 +130,8 @@
         <div class="boot-content">
             <div class="boot-logo">HEE</div>
             <div class="boot-text">Booting...</div>
-            <div class="boot-text delay-1">Loading system files...</div>
-            <div class="boot-text delay-2">Last login: <span id="last-login">--</span></div>
+            <div class="boot-text">Loading system files...</div>
+            <div class="boot-text">Last login: <span id="last-login">--</span></div>
             <div class="name-input-container">
                 <input type="text" id="user-name" class="name-input" placeholder="输入你的名字" maxlength="20">
                 <br>
@@ -155,6 +159,9 @@
             userNameInput.value = savedName;
         }
         
+        // 首次进入标记
+        const isFirstTime = localStorage.getItem('hee_initialized') === null;
+        
         function enterDesktop() {
             let userName = userNameInput.value.trim();
             if (!userName) {
@@ -163,15 +170,39 @@
             localStorage.setItem('hee_username', userName);
             localStorage.setItem('hee_last_login', now);
             
-            // 初始化天数
-            if (localStorage.getItem('hee_day') === null) {
+            if (isFirstTime) {
+                // 首次进入：重置所有数据，从第1天开始
                 localStorage.setItem('hee_day', '1');
-            }
-            if (localStorage.getItem('hee_residue') === null) {
                 localStorage.setItem('hee_residue', '0');
-            }
-            if (localStorage.getItem('hee_first_popup') === null) {
                 localStorage.setItem('hee_first_popup', 'false');
+                localStorage.setItem('hee_initialized', 'true');
+                localStorage.removeItem('hee_last_story_date');
+                localStorage.removeItem('hee_last_reply_date');
+                localStorage.removeItem('hee_deleted_files');
+                localStorage.removeItem('hee_recycle_items');
+                localStorage.removeItem('hee_diary_count');
+                localStorage.removeItem('hee_photo_count');
+                localStorage.removeItem('hee_sticky_count');
+                localStorage.removeItem('hee_email_count');
+                localStorage.removeItem('hee_cmd_count');
+                localStorage.removeItem('hee_notepad');
+                localStorage.removeItem('hee_ending');
+                localStorage.removeItem('hee_achievements');
+                localStorage.removeItem('hee_completed_endings');
+                console.log('首次进入，已重置数据，从第1天开始');
+            } else {
+                // 非首次：确保天数有效
+                let savedDay = parseInt(localStorage.getItem('hee_day') || '1');
+                if (savedDay < 1 || savedDay > 7 || isNaN(savedDay)) {
+                    localStorage.setItem('hee_day', '1');
+                }
+                if (localStorage.getItem('hee_residue') === null) {
+                    localStorage.setItem('hee_residue', '0');
+                }
+                if (localStorage.getItem('hee_first_popup') === null) {
+                    localStorage.setItem('hee_first_popup', 'false');
+                }
+                console.log('非首次进入，当前天数:', localStorage.getItem('hee_day'));
             }
             
             bootScreen.style.opacity = '0';
