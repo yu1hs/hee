@@ -4,178 +4,846 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>HEE · 桌面</title>
-    <link rel="stylesheet" href="css/desktop.css">
-    <link rel="stylesheet" href="css/window.css">
-    <link rel="stylesheet" href="css/mobile.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+        body {
+            overflow: hidden;
+            font-family: 'Segoe UI', 'Courier New', monospace;
+        }
+        /* 蓝色复古桌面 */
+        .desktop {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            background: #0a2a5a;
+            background: linear-gradient(135deg, #0a2a5a 0%, #0a1a3a 100%);
+        }
+        .desktop-wallpaper {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: radial-gradient(circle at 25% 40%, rgba(255,255,255,0.05) 1px, transparent 1px);
+            background-size: 30px 30px;
+            pointer-events: none;
+        }
+        /* 桌面图标网格 */
+        .desktop-icons {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(85px, 95px));
+            gap: 16px 12px;
+            z-index: 10;
+            padding: 8px;
+        }
+        .desktop-icon {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 6px;
+            padding: 8px 6px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.1s;
+        }
+        .desktop-icon:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .icon-image {
+            font-size: 38px;
+        }
+        .icon-label {
+            font-size: 11px;
+            color: #ffffff;
+            text-shadow: 1px 1px 0 #0a1a3a;
+            max-width: 80px;
+            word-break: break-word;
+        }
+        /* 任务栏 - 复古蓝 */
+        .taskbar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 40px;
+            background: #1a3a6a;
+            border-top: 1px solid #3a6a9a;
+            display: flex;
+            align-items: center;
+            padding: 0 8px;
+            z-index: 100;
+        }
+        .start-button {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            background: #2a5a8a;
+            border: 1px solid #4a8aba;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .start-button:hover {
+            background: #3a6a9a;
+        }
+        .start-text {
+            font-size: 12px;
+            color: #ffffff;
+            font-weight: bold;
+        }
+        .taskbar-tray {
+            flex: 1;
+            display: flex;
+            margin-left: 12px;
+        }
+        .taskbar-item {
+            padding: 4px 12px;
+            background: #2a5a8a;
+            border: 1px solid #4a8aba;
+            border-radius: 4px;
+            font-size: 11px;
+            color: #fff;
+            cursor: pointer;
+            margin-right: 4px;
+        }
+        .system-tray {
+            display: flex;
+            gap: 8px;
+            padding: 0 8px;
+            background: #1a3a6a;
+        }
+        .tray-time {
+            font-size: 11px;
+            color: #fff;
+        }
+        /* 开始菜单 */
+        .start-menu {
+            position: fixed;
+            bottom: 45px;
+            left: 8px;
+            width: 220px;
+            background: #1a3a6a;
+            border: 1px solid #4a8aba;
+            border-radius: 6px;
+            z-index: 200;
+            display: none;
+        }
+        .start-menu.show {
+            display: block;
+        }
+        .start-menu-header {
+            padding: 10px;
+            background: #2a5a8a;
+            border-bottom: 1px solid #4a8aba;
+        }
+        .start-menu-user {
+            font-size: 12px;
+            color: #fff;
+            font-weight: bold;
+        }
+        .start-menu-item {
+            padding: 10px 16px;
+            font-size: 12px;
+            color: #fff;
+            cursor: pointer;
+        }
+        .start-menu-item:hover {
+            background: #3a6a9a;
+        }
+        .start-menu-divider {
+            height: 1px;
+            background: #4a8aba;
+            margin: 5px 0;
+        }
+        .hidden {
+            display: none !important;
+        }
+        /* 窗口样式 */
+        .window {
+            position: absolute;
+            width: 480px;
+            height: 380px;
+            background: #ece9d8;
+            border: 2px solid #0a5a8a;
+            border-radius: 8px 8px 4px 4px;
+            display: flex;
+            flex-direction: column;
+            z-index: 50;
+            box-shadow: 4px 4px 10px rgba(0,0,0,0.3);
+        }
+        .window-titlebar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background: linear-gradient(90deg, #0a5a8a, #1a7aba);
+            border-bottom: 1px solid #3a9aea;
+            cursor: move;
+            border-radius: 6px 6px 0 0;
+        }
+        .window-title {
+            font-size: 12px;
+            font-weight: bold;
+            color: #fff;
+        }
+        .window-control {
+            background: none;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            padding: 0 6px;
+            font-size: 14px;
+        }
+        .window-control:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        .window-content {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+            font-size: 13px;
+            color: #1a1a1a;
+            background: #ffffff;
+        }
+        /* 弹窗 */
+        .system-popup {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            width: 320px;
+            background: #ece9d8;
+            border: 2px solid #0a5a8a;
+            border-radius: 8px;
+            z-index: 300;
+            box-shadow: 4px 4px 10px rgba(0,0,0,0.2);
+        }
+        .system-popup-header {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 12px;
+            background: #0a5a8a;
+            color: #fff;
+            font-weight: bold;
+            border-radius: 6px 6px 0 0;
+        }
+        .system-popup-close {
+            background: none;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+        }
+        .system-popup-content {
+            padding: 16px;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #1a1a1a;
+        }
+        .system-popup-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            padding: 12px;
+            border-top: 1px solid #ccc;
+        }
+        .system-popup-btn {
+            padding: 6px 16px;
+            background: #ece9d8;
+            border: 1px solid #0a5a8a;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .system-popup-btn:hover {
+            background: #d4d0c0;
+        }
+        /* 日记样式 */
+        .diary-entry {
+            border-left: 3px solid #0a5a8a;
+            padding: 10px;
+            margin-bottom: 12px;
+            background: #f5f3ef;
+        }
+        .diary-date {
+            font-size: 10px;
+            color: #0a5a8a;
+            margin-bottom: 6px;
+            font-weight: bold;
+        }
+        /* 照片网格 */
+        .photo-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        .photo-item {
+            background: #f5f3ef;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+        }
+        .photo-item:hover {
+            background: #e8e4dc;
+            border-color: #0a5a8a;
+        }
+        .photo-image {
+            font-size: 48px;
+        }
+        /* 便签样式 */
+        .note-item {
+            background: #fff8dc;
+            border: 1px solid #e6c800;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+        /* 收藏夹 */
+        .fav-category { margin-bottom: 20px; }
+        .fav-title { font-size: 14px; color: #0a5a8a; border-bottom: 2px solid #0a5a8a; padding-bottom: 6px; margin-bottom: 10px; font-weight: bold; }
+        .fav-item { padding: 6px 0; font-size: 12px; color: #333; }
+        /* 通讯录 */
+        .contact-card {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            background: #f5f3ef;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        /* 计算器 */
+        .calculator {
+            width: 260px;
+            background: #ece9d8;
+            border: 1px solid #999;
+            border-radius: 8px;
+            padding: 12px;
+        }
+        .calc-display {
+            background: #fff;
+            padding: 16px;
+            text-align: right;
+            font-size: 24px;
+            margin-bottom: 12px;
+            border: 1px solid #999;
+        }
+        .calc-buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+        }
+        .calc-btn {
+            padding: 12px;
+            background: #d4d0c0;
+            border: 1px solid #999;
+            cursor: pointer;
+            text-align: center;
+        }
+        .calc-btn:hover { background: #c0bcac; }
+        /* 底部显示 */
+        #residue-display, #story-day-display {
+            position: fixed;
+            bottom: 45px;
+            font-size: 10px;
+            color: #fff;
+            background: rgba(0,0,0,0.6);
+            padding: 2px 8px;
+            border-radius: 4px;
+            z-index: 99;
+            font-family: monospace;
+        }
+        #residue-display { right: 10px; }
+        #story-day-display { left: 10px; }
+        /* 论坛iframe */
+        .forum-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: #fff;
+        }
+    </style>
 </head>
 <body>
 <div class="desktop" id="desktop">
-    <!-- 桌面壁纸区域 -->
-    <div class="desktop-wallpaper" id="desktop-wallpaper"></div>
+    <div class="desktop-wallpaper"></div>
     
-    <!-- 桌面图标区域 - 网格布局像真实桌面 -->
     <div class="desktop-icons" id="desktop-icons">
-        <!-- 我的电脑 -->
-        <div class="desktop-icon" data-app="mycomputer">
-            <div class="icon-image">🖥️</div>
-            <div class="icon-label">我的电脑</div>
-        </div>
-        
-        <!-- 回收站 -->
-        <div class="desktop-icon" data-app="recycle">
-            <div class="icon-image">🗑️</div>
-            <div class="icon-label">回收站</div>
-        </div>
-        
-        <!-- 浏览器 -->
-        <div class="desktop-icon" data-app="browser">
-            <div class="icon-image">🌐</div>
-            <div class="icon-label">浏览器</div>
-        </div>
-        
-        <!-- 日记本 -->
-        <div class="desktop-icon" data-app="diary">
-            <div class="icon-image">📓</div>
-            <div class="icon-label">日记本.txt</div>
-        </div>
-        
-        <!-- 照片 -->
-        <div class="desktop-icon" data-app="photos">
-            <div class="icon-image">🖼️</div>
-            <div class="icon-label">照片</div>
-        </div>
-        
-        <!-- 便签 -->
-        <div class="desktop-icon" data-app="stickynotes">
-            <div class="icon-image">📌</div>
-            <div class="icon-label">便签</div>
-        </div>
-        
-        <!-- 收藏夹 -->
-        <div class="desktop-icon" data-app="favorites">
-            <div class="icon-image">⭐</div>
-            <div class="icon-label">收藏夹</div>
-        </div>
-        
-        <!-- 备忘录 -->
-        <div class="desktop-icon" data-app="memo">
-            <div class="icon-image">📝</div>
-            <div class="icon-label">备忘录.exe</div>
-        </div>
-        
-        <!-- 日志 -->
-        <div class="desktop-icon" data-app="logs">
-            <div class="icon-image">📋</div>
-            <div class="icon-label">日志.log</div>
-        </div>
-        
-        <!-- 记事本 -->
-        <div class="desktop-icon" data-app="notepad">
-            <div class="icon-image">📄</div>
-            <div class="icon-label">记事本</div>
-        </div>
-        
-        <!-- 画图 -->
-        <div class="desktop-icon" data-app="paint">
-            <div class="icon-image">🎨</div>
-            <div class="icon-label">画图</div>
-        </div>
-        
-        <!-- 计算器 -->
-        <div class="desktop-icon" data-app="calculator">
-            <div class="icon-image">🔢</div>
-            <div class="icon-label">计算器</div>
-        </div>
-        
-        <!-- 终端 -->
-        <div class="desktop-icon" data-app="terminal">
-            <div class="icon-image">⌨️</div>
-            <div class="icon-label">终端</div>
-        </div>
-        
-        <!-- 日历 -->
-        <div class="desktop-icon" data-app="calendar">
-            <div class="icon-image">📅</div>
-            <div class="icon-label">日历</div>
-        </div>
-        
-        <!-- 闹钟 -->
-        <div class="desktop-icon" data-app="alarm">
-            <div class="icon-image">⏰</div>
-            <div class="icon-label">闹钟</div>
-        </div>
-        
-        <!-- 通讯录 -->
-        <div class="desktop-icon" data-app="contacts">
-            <div class="icon-image">👥</div>
-            <div class="icon-label">通讯录</div>
-        </div>
-        
-        <!-- 邮箱 -->
-        <div class="desktop-icon" data-app="email">
-            <div class="icon-image">📧</div>
-            <div class="icon-label">邮箱</div>
-        </div>
-        
-        <!-- 运行 -->
-        <div class="desktop-icon" data-app="run">
-            <div class="icon-image">⚙️</div>
-            <div class="icon-label">运行</div>
-        </div>
-        
-        <!-- 陌生文件夹（第7天解锁，初始隐藏） -->
-        <div class="desktop-icon hidden" id="secret-folder" data-app="secret">
-            <div class="icon-image">📁</div>
-            <div class="icon-label">一个陌生的文件夹</div>
-        </div>
-        
-        <!-- 欢迎.txt（第1天3秒后出现） -->
-        <div class="desktop-icon hidden" id="welcome-file" data-app="welcome">
-            <div class="icon-image">📄</div>
-            <div class="icon-label">欢迎.txt</div>
-        </div>
+        <div class="desktop-icon" data-app="diary"><div class="icon-image">📓</div><div class="icon-label">日记本</div></div>
+        <div class="desktop-icon" data-app="photos"><div class="icon-image">🖼️</div><div class="icon-label">照片</div></div>
+        <div class="desktop-icon" data-app="stickynotes"><div class="icon-image">📌</div><div class="icon-label">便签</div></div>
+        <div class="desktop-icon" data-app="favorites"><div class="icon-image">⭐</div><div class="icon-label">收藏夹</div></div>
+        <div class="desktop-icon" data-app="memo"><div class="icon-image">📝</div><div class="icon-label">备忘录</div></div>
+        <div class="desktop-icon" data-app="logs"><div class="icon-image">📋</div><div class="icon-label">系统日志</div></div>
+        <div class="desktop-icon" data-app="notepad"><div class="icon-image">📄</div><div class="icon-label">记事本</div></div>
+        <div class="desktop-icon" data-app="calculator"><div class="icon-image">🔢</div><div class="icon-label">计算器</div></div>
+        <div class="desktop-icon" data-app="terminal"><div class="icon-image">⌨️</div><div class="icon-label">终端</div></div>
+        <div class="desktop-icon" data-app="calendar"><div class="icon-image">📅</div><div class="icon-label">日历</div></div>
+        <div class="desktop-icon" data-app="alarm"><div class="icon-image">⏰</div><div class="icon-label">闹钟</div></div>
+        <div class="desktop-icon" data-app="contacts"><div class="icon-image">👥</div><div class="icon-label">通讯录</div></div>
+        <div class="desktop-icon" data-app="email"><div class="icon-image">📧</div><div class="icon-label">邮箱</div></div>
+        <div class="desktop-icon" data-app="run"><div class="icon-image">⚙️</div><div class="icon-label">运行</div></div>
+        <div class="desktop-icon" data-app="browser"><div class="icon-image">🌐</div><div class="icon-label">浏览器</div></div>
+        <div class="desktop-icon" data-app="mycomputer"><div class="icon-image">🖥️</div><div class="icon-label">我的电脑</div></div>
+        <div class="desktop-icon" data-app="recycle"><div class="icon-image">🗑️</div><div class="icon-label">回收站</div></div>
+        <div class="desktop-icon hidden" id="welcome-file" data-app="welcome"><div class="icon-image">📄</div><div class="icon-label">欢迎.txt</div></div>
+        <div class="desktop-icon hidden" id="secret-folder" data-app="secret"><div class="icon-image">📁</div><div class="icon-label">陌生的文件夹</div></div>
     </div>
     
-    <!-- 任务栏 -->
-    <div class="taskbar" id="taskbar">
-        <div class="start-button" id="start-button">
-            <span class="start-icon">🔘</span>
-            <span class="start-text">开始</span>
-        </div>
-        <div class="taskbar-tray" id="taskbar-tray">
-            <!-- 打开的窗口会显示在这里 -->
-        </div>
-        <div class="system-tray">
-            <span class="tray-icon">🔊</span>
-            <span class="tray-icon">🌐</span>
-            <span class="tray-time" id="tray-time">--:--</span>
-        </div>
+    <div class="taskbar">
+        <div class="start-button" id="start-button"><span class="start-text">开始</span></div>
+        <div class="taskbar-tray" id="taskbar-tray"></div>
+        <div class="system-tray"><span class="tray-time" id="tray-time">--:--</span></div>
     </div>
     
-    <!-- 开始菜单 -->
-    <div class="start-menu hidden" id="start-menu">
-        <div class="start-menu-header">
-            <div class="start-menu-user" id="start-menu-user">User</div>
-        </div>
+    <div class="start-menu" id="start-menu">
+        <div class="start-menu-header"><div class="start-menu-user" id="start-menu-user">User</div></div>
         <div class="start-menu-items">
-            <div class="start-menu-item" data-app="mycomputer">🖥️ 我的电脑</div>
-            <div class="start-menu-item" data-app="browser">🌐 浏览器</div>
             <div class="start-menu-item" data-app="diary">📓 日记本</div>
+            <div class="start-menu-item" data-app="photos">🖼️ 照片</div>
+            <div class="start-menu-item" data-app="browser">🌐 浏览器</div>
             <div class="start-menu-divider"></div>
             <div class="start-menu-item" id="new-game">🔄 新游戏</div>
             <div class="start-menu-item" id="shutdown">🔌 关机</div>
         </div>
     </div>
     
-    <!-- 弹窗容器 -->
     <div id="popup-container"></div>
-    
-    <!-- 窗口容器 -->
     <div id="windows-container"></div>
 </div>
 
-<script src="js/audio.js"></script>
-<script src="js/desktop.js"></script>
-<script src="js/story.js"></script>
+<script>
+    // ========== 游戏状态 ==========
+    let currentDay = parseInt(localStorage.getItem('hee_day') || '1');
+    let residue = parseInt(localStorage.getItem('hee_residue') || '0');
+    let openWindows = [];
+    let nextZ = 100;
+    let userName = localStorage.getItem('hee_username') || '你';
+    let welcomeShown = false;
+    let firstPopup = localStorage.getItem('hee_first_popup') === 'true';
+    
+    if (currentDay < 1 || currentDay > 7) { currentDay = 1; localStorage.setItem('hee_day', '1'); }
+    
+    // 论坛内容（内置HTML）
+    const forumHTML = `
+        <div style="background:#1a3a6a; color:#fff; padding:10px; text-align:center;">
+            <h2>HEE 私人论坛</h2>
+            <p>最后活动：很久以前 | 用户：Heeseung</p>
+        </div>
+        <div style="padding:20px;">
+            <div style="background:#f5f3ef; border:1px solid #ccc; border-radius:8px; margin-bottom:20px;">
+                <div style="background:#0a5a8a; color:#fff; padding:10px; border-radius:8px 8px 0 0;">💬 悄悄话</div>
+                <div style="padding:15px;" id="forum-messages">
+                    <div style="margin-bottom:15px;">
+                        <div style="font-weight:bold; color:#0a5a8a;">Heeseung · 很久以前</div>
+                        <div style="background:#fff; padding:10px; border:1px solid #ddd; margin-top:5px;">……你怎么进来的。</div>
+                    </div>
+                </div>
+                <div id="forum-options" style="padding:15px; border-top:1px solid #ccc; display:flex; gap:10px; flex-wrap:wrap;">
+                    <button class="forum-btn" data-reply="0" style="padding:8px 16px; background:#0a5a8a; color:#fff; border:none; border-radius:4px; cursor:pointer;">误入的</button>
+                    <button class="forum-btn" data-reply="1" style="padding:8px 16px; background:#0a5a8a; color:#fff; border:none; border-radius:4px; cursor:pointer;">偶然</button>
+                    <button class="forum-btn" data-reply="2" style="padding:8px 16px; background:#0a5a8a; color:#fff; border:none; border-radius:4px; cursor:pointer;">沉默</button>
+                </div>
+            </div>
+            <div style="background:#f5f3ef; border:1px solid #ccc; border-radius:8px;">
+                <div style="background:#0a5a8a; color:#fff; padding:10px; border-radius:8px 8px 0 0;">📜 帖子</div>
+                <div style="padding:15px;">
+                    <div style="border-left:3px solid #0a5a8a; padding-left:10px; margin-bottom:15px;">
+                        <div style="font-size:11px; color:#666;">2024-12-31 04:13</div>
+                        <div>不知道该写什么。但想留下点什么。</div>
+                    </div>
+                    <div style="border-left:3px solid #0a5a8a; padding-left:10px;">
+                        <div style="font-size:11px; color:#666;">2025-01-02 23:58</div>
+                        <div>今天发生了一件很好的事。想让你知道。</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // ========== 弹窗系统 ==========
+    function showPopup(msg, options, isForum = false) {
+        const container = document.getElementById('popup-container');
+        if (!container) return;
+        let m = msg.replace(/你/g, userName);
+        const popup = document.createElement('div');
+        popup.className = 'system-popup';
+        popup.innerHTML = `<div class="system-popup-header"><span>💬 悄悄话</span><button class="system-popup-close">✕</button></div>
+            <div class="system-popup-content">${escapeHtml(m)}</div>
+            <div class="system-popup-buttons" id="popup-buttons"></div>`;
+        const btns = popup.querySelector('#popup-buttons');
+        options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'system-popup-btn';
+            btn.textContent = opt.text;
+            btn.onclick = () => {
+                popup.remove();
+                setTimeout(() => {
+                    const reply = document.createElement('div');
+                    reply.className = 'system-popup';
+                    reply.style.bottom = '100px';
+                    let r = opt.reply.replace(/你/g, userName);
+                    reply.innerHTML = `<div class="system-popup-header"><span>Heeseung</span><button class="system-popup-close">✕</button></div>
+                        <div class="system-popup-content">${escapeHtml(r)}</div>`;
+                    reply.querySelector('.system-popup-close').onclick = () => reply.remove();
+                    container.appendChild(reply);
+                    setTimeout(() => reply.remove(), 5000);
+                    residue = Math.min(30, Math.max(-10, residue + (opt.residue || 0)));
+                    localStorage.setItem('hee_residue', residue);
+                    updateDisplays();
+                }, 200);
+            };
+            btns.appendChild(btn);
+        });
+        popup.querySelector('.system-popup-close').onclick = () => popup.remove();
+        container.appendChild(popup);
+        setTimeout(() => popup.remove(), 30000);
+    }
+    
+    function updateDisplays() {
+        let rd = document.getElementById('residue-display');
+        if (!rd) { rd = document.createElement('div'); rd.id = 'residue-display'; document.body.appendChild(rd); }
+        rd.textContent = `残响: ${residue}`;
+        let sd = document.getElementById('story-day-display');
+        if (!sd) { sd = document.createElement('div'); sd.id = 'story-day-display'; document.body.appendChild(sd); }
+        sd.textContent = `第${currentDay}/7天`;
+    }
+    
+    // ========== 窗口系统 ==========
+    function openApp(appName) {
+        if (document.querySelector(`.window[data-app="${appName}"]`)) return;
+        
+        const titles = {
+            diary:'日记本', photos:'照片', stickynotes:'便签', favorites:'收藏夹',
+            memo:'备忘录', logs:'系统日志', notepad:'记事本', calculator:'计算器',
+            terminal:'终端', calendar:'日历', alarm:'闹钟', contacts:'通讯录',
+            email:'邮箱', run:'运行', browser:'浏览器', mycomputer:'我的电脑',
+            recycle:'回收站', welcome:'欢迎', secret:'陌生的文件夹'
+        };
+        
+        const win = document.createElement('div');
+        win.className = 'window';
+        win.dataset.app = appName;
+        win.style.left = (100 + openWindows.length * 30) + 'px';
+        win.style.top = (100 + openWindows.length * 30) + 'px';
+        win.style.zIndex = nextZ++;
+        win.innerHTML = `<div class="window-titlebar"><span class="window-title">${titles[appName] || appName}</span>
+            <div><button class="window-control close">✕</button></div></div>
+            <div class="window-content" id="win-${appName}">加载中...</div>`;
+        
+        const content = win.querySelector('.window-content');
+        content.innerHTML = getAppContent(appName);
+        
+        win.querySelector('.close').onclick = () => win.remove();
+        
+        const bar = win.querySelector('.window-titlebar');
+        let drag = false, offX, offY;
+        bar.onmousedown = (e) => {
+            if (e.target.classList.contains('close')) return;
+            drag = true;
+            offX = e.clientX - win.offsetLeft;
+            offY = e.clientY - win.offsetTop;
+            win.style.zIndex = nextZ++;
+        };
+        document.onmousemove = (e) => {
+            if (!drag) return;
+            win.style.left = (e.clientX - offX) + 'px';
+            win.style.top = (e.clientY - offY) + 'px';
+        };
+        document.onmouseup = () => drag = false;
+        
+        document.getElementById('windows-container').appendChild(win);
+        openWindows.push(win);
+        
+        // 初始化窗口内的按钮
+        initWindowButtons(appName, content);
+        
+        // 添加到任务栏
+        addToTaskbar(appName, win);
+    }
+    
+    function addToTaskbar(appName, win) {
+        const tray = document.getElementById('taskbar-tray');
+        const item = document.createElement('div');
+        item.className = 'taskbar-item';
+        item.textContent = appName;
+        item.onclick = () => {
+            win.classList.toggle('hidden');
+            item.style.opacity = win.classList.contains('hidden') ? '0.5' : '1';
+        };
+        tray.appendChild(item);
+        win.addEventListener('remove', () => item.remove());
+    }
+    
+    function getAppContent(app) {
+        if (app === 'browser') {
+            return `<iframe class="forum-iframe" srcdoc="${escapeHtml(forumHTML)}"></iframe>`;
+        }
+        if (app === 'diary') {
+            let entries = [
+                {date:'2024-03-11 02:13', text:'下雨。没出门。听雨声。'},
+                {date:'2024-03-15 01:47', text:'想说一句话。写了。删了。'},
+                {date:'2024-04-02 23:58', text:'累。不想写了。'},
+                {date:'2024-06-21 02:00', text:'夏至。白天很长。'},
+                {date:'2024-08-14 04:00', text:'看了以前的照片。'},
+                {date:'2024-12-31 23:59', text:'一年结束了。'}
+            ];
+            if (currentDay >= 3) entries.unshift({date:'2025-01-03', text:'她打开了这台电脑。她不记得了。'});
+            if (currentDay >= 6) entries.unshift({date:'2025-01-06', text:'她好像一点点想起来了。'});
+            return entries.map(e => `<div class="diary-entry"><div class="diary-date">📅 ${e.date}</div><div>${escapeHtml(e.text)}</div></div>`).join('');
+        }
+        if (app === 'photos') {
+            return `<div class="photo-grid">
+                <div class="photo-item" onclick="window.viewPhoto(1)"><div class="photo-image">🌤️</div><div>天空<br><span style="font-size:10px;">2024-03-11</span></div></div>
+                <div class="photo-item" onclick="window.viewPhoto(2)"><div class="photo-image">☕</div><div>咖啡<br><span style="font-size:10px;">2024-06-21</span></div></div>
+                <div class="photo-item" onclick="window.viewPhoto(3)"><div class="photo-image">👤</div><div>侧影<br><span style="font-size:10px;">2024-08-14</span></div></div>
+                <div class="photo-item" onclick="window.viewPhoto(4)"><div class="photo-image">📸</div><div>自拍<br><span style="font-size:10px;">2024-10-11</span></div></div>
+            </div>`;
+        }
+        if (app === 'stickynotes') {
+            return `<div class="note-item" onclick="window.viewStickyNote(1)"><div>📌 便签 1</div><div style="font-size:11px; color:#666;">2024-12-25</div><div>"今天发生了很好的事..."</div></div>
+                    <div class="note-item" onclick="window.viewStickyNote(2)"><div>📌 便签 2</div><div style="font-size:11px; color:#666;">2024-12-28</div><div>"记得关窗..."</div></div>
+                    <div class="note-item" onclick="window.viewStickyNote(3)"><div>📌 便签 3</div><div style="font-size:11px; color:#666;">2024-12-30</div><div>"你什么时候回来..."</div></div>`;
+        }
+        if (app === 'favorites') {
+            return `<div class="fav-category"><div class="fav-title">🎵 音乐</div><div class="fav-item">适合凌晨听</div><div class="fav-item">不适合听第二遍</div></div>
+                    <div class="fav-category"><div class="fav-title">🎬 电影</div><div class="fav-item">只看过片段</div><div class="fav-item">结局不好</div></div>
+                    <div class="fav-category"><div class="fav-title">📷 照片</div><div class="fav-item">天气很好那天</div><div class="fav-item">没人</div></div>`;
+        }
+        if (app === 'memo') return `<div style="font-family:monospace;">2024-12-31<br>她还没来。<br><br>2025-01-01<br>她来了。<br><br>2025-01-02<br>她打开了电脑。<br>……她不记得我了。</div>`;
+        if (app === 'logs') return `<div style="font-family:monospace;"><div style="color:#0a5a8a;">[2025-01-02 21:47:22] 系统启动</div><div style="color:#0a5a8a;">[2025-01-03 00:13:05] 远程连接已建立</div><div style="color:#0a5a8a;">[2025-01-03 00:13:06] 来源：未知</div></div>`;
+        if (app === 'notepad') {
+            let saved = localStorage.getItem('hee_notepad') || '';
+            return `<textarea id="notepad-text" style="width:100%; height:200px; background:#fff; border:1px solid #ccc; padding:10px;">${escapeHtml(saved)}</textarea>
+                    <button id="save-notepad" style="margin-top:8px; padding:6px 12px; background:#0a5a8a; color:#fff; border:none; border-radius:4px; cursor:pointer;">保存</button>`;
+        }
+        if (app === 'calculator') {
+            return `<div class="calculator"><div class="calc-display" id="calc-display">0</div>
+                <div class="calc-buttons">
+                <button class="calc-btn" data-num="7">7</button><button class="calc-btn" data-num="8">8</button><button class="calc-btn" data-num="9">9</button><button class="calc-btn" data-op="/">/</button>
+                <button class="calc-btn" data-num="4">4</button><button class="calc-btn" data-num="5">5</button><button class="calc-btn" data-num="6">6</button><button class="calc-btn" data-op="*">*</button>
+                <button class="calc-btn" data-num="1">1</button><button class="calc-btn" data-num="2">2</button><button class="calc-btn" data-num="3">3</button><button class="calc-btn" data-op="-">-</button>
+                <button class="calc-btn" data-num="0">0</button><button class="calc-btn" data-clear="C">C</button><button class="calc-btn" data-equal="=">=</button><button class="calc-btn" data-op="+">+</button>
+                </div></div>`;
+        }
+        if (app === 'terminal') {
+            return `<div style="background:#000; padding:10px; font-family:monospace; height:250px; overflow-y:auto;" id="term-output"><div style="color:#0a5a8a;">C:\\Users\\${userName}></div></div>
+                    <div style="display:flex; margin-top:10px;"><span style="color:#0a5a8a;">C:\\Users\\${userName}></span><input type="text" id="term-input" style="flex:1; background:#fff; border:1px solid #ccc; padding:5px;"></div>`;
+        }
+        if (app === 'calendar') return `<div style="text-align:center; padding:20px;"><div style="font-size:48px;">📅</div><div>2024年12月31日被标记了</div><div style="color:#0a5a8a; margin-top:10px;">「最后一天」</div></div>`;
+        if (app === 'alarm') return `<div style="padding:20px;"><div style="font-size:36px;">⏰</div><div>预设时间: 04:00</div><div style="color:#0a5a8a;">「以前这时候我们都在」</div></div>`;
+        if (app === 'contacts') {
+            return `<div class="contact-card" onclick="window.viewContact()">
+                <div style="font-size:48px;">👤</div>
+                <div><div style="font-weight:bold;">Heeseung</div><div style="font-size:11px;">离线 · 很久以前</div></div>
+            </div>`;
+        }
+        if (app === 'email') {
+            return `<div style="padding:10px; background:#f5f3ef; border:1px solid #ccc; border-radius:6px; cursor:pointer;" onclick="window.viewEmail()">
+                <div><strong>heeseung@past.com</strong></div>
+                <div style="font-size:11px;">如果有一天你打开这台电脑</div>
+                <div style="font-size:10px; color:#666;">2024-12-31</div>
+            </div>`;
+        }
+        if (app === 'run') {
+            return `<input type="text" id="run-cmd" style="width:100%; padding:8px; border:1px solid #ccc;" placeholder="输入命令...">
+                    <button id="run-btn" style="margin-top:10px; padding:6px 12px; background:#0a5a8a; color:#fff; border:none; border-radius:4px; cursor:pointer;">运行</button>`;
+        }
+        if (app === 'mycomputer') return `<div style="padding:20px;"><div>💻 系统: Windows HE Edition</div><div>🖥️ 设备名: HEESEUNG-PC</div><div>👤 用户: ${userName}</div><div>🔌 远程连接: ${currentDay>=3?'已建立':'无'}</div></div>`;
+        if (app === 'recycle') return `<div style="padding:20px; text-align:center; color:#888;">回收站是空的</div>`;
+        if (app === 'welcome') return `<div style="text-align:center; padding:40px;"><div style="font-size:32px;">📄</div><div style="font-size:20px; margin:20px 0;">欢迎.txt</div><div>你打开了这台电脑。<br><br>……你终于打开了。<br><br>我会让你想起来的。<br><br><span style="color:#0a5a8a;">—— 一个陌生人</span></div></div>`;
+        if (app === 'secret') return `<div style="text-align:center; padding:40px;"><div style="font-size:48px;">🔒</div><div>你还不能打开这个文件夹</div></div>`;
+        return `<div>功能开发中...</div>`;
+    }
+    
+    function initWindowButtons(app, container) {
+        if (app === 'notepad') {
+            const btn = document.getElementById('save-notepad');
+            if (btn) btn.onclick = () => {
+                const ta = document.getElementById('notepad-text');
+                if (ta) localStorage.setItem('hee_notepad', ta.value);
+                showPopup('保存了。', [{ text:'嗯', reply:'我会看的。', residue:1 }]);
+            };
+        }
+        if (app === 'calculator') {
+            let display = '0', first = null, op = null, wait = false;
+            const update = () => { const d = document.getElementById('calc-display'); if(d) d.textContent = display; };
+            document.querySelectorAll('.calc-btn').forEach(btn => {
+                btn.onclick = () => {
+                    const num = btn.dataset.num, opBtn = btn.dataset.op, clear = btn.dataset.clear, eq = btn.dataset.equal;
+                    if (num) { if (wait) { display = num; wait = false; } else display = display === '0' ? num : display + num; update(); }
+                    else if (opBtn) { first = parseFloat(display); op = opBtn; wait = true; }
+                    else if (clear) { display = '0'; first = null; op = null; update(); }
+                    else if (eq && first !== null && op !== null) {
+                        let result = 0;
+                        const sec = parseFloat(display);
+                        if (op === '+') result = first + sec;
+                        else if (op === '-') result = first - sec;
+                        else if (op === '*') result = first * sec;
+                        else if (op === '/') result = first / sec;
+                        display = String(result);
+                        first = null; op = null; wait = false;
+                        update();
+                    }
+                };
+            });
+        }
+        if (app === 'terminal') {
+            const input = document.getElementById('term-input');
+            const output = document.getElementById('term-output');
+            if (input) {
+                input.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        const cmd = input.value.toLowerCase();
+                        output.innerHTML += `<div>C:\\Users\\${userName}> ${escapeHtml(input.value)}</div>`;
+                        let resp = '';
+                        if (cmd === 'whoami') resp = 'heeseung_pc/user';
+                        else if (cmd === 'dir') resp = 'welcome.txt\nheeseung_secret';
+                        else if (cmd === 'help') resp = 'HELP FROM H: "你会想起来的"';
+                        else if (cmd === 'heeseung') resp = '你是谁？\n> 你认识的人。';
+                        else if (cmd === 'cls') { output.innerHTML = ''; input.value = ''; return; }
+                        else resp = `'${cmd}' 不是内部或外部命令。`;
+                        if (resp) output.innerHTML += `<div style="color:#0a5a8a;">${resp}</div>`;
+                        input.value = '';
+                        output.scrollTop = output.scrollHeight;
+                    }
+                });
+            }
+        }
+        if (app === 'run') {
+            const btn = document.getElementById('run-btn');
+            if (btn) {
+                const inp = document.getElementById('run-cmd');
+                btn.onclick = () => {
+                    const cmd = inp.value.toLowerCase();
+                    if (cmd === 'heeseung') showPopup('你在叫我吗。', [{ text:'嗯', reply:'我在。', residue:2 }]);
+                    else showPopup(`'${cmd}' 不是有效命令。`, [{ text:'知道了', reply:'...', residue:0 }]);
+                    inp.value = '';
+                };
+            }
+        }
+    }
+    
+    // ========== 全局函数 ==========
+    window.viewPhoto = (id) => showPopup('你看了这张照片。', [{ text:'好看', reply:'你以前也这么说。', residue:1 }]);
+    window.viewStickyNote = (id) => {
+        const notes = {1:'今天发生了很好的事。\n\n—— H',2:'记得关窗。\n\n—— H',3:'你什么时候回来。\n\n—— H'};
+        showPopup(`📌 便签内容\n\n${notes[id]}`, [{ text:'这是你写的？', reply:'嗯。', residue:1 }]);
+    };
+    window.viewContact = () => showPopup('你想联系我吗？', [{ text:'在吗', reply:'我一直在。', residue:2 }]);
+    window.viewEmail = () => showPopup('如果有一天你打开这台电脑。\n你会记得我吗。', [{ text:'我记得', reply:'谢谢。', residue:3 }]);
+    
+    function escapeHtml(s) { return s ? s.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])) : ''; }
+    
+    // ========== 事件绑定 ==========
+    document.querySelectorAll('.desktop-icon').forEach(icon => {
+        icon.addEventListener('click', () => { const app = icon.dataset.app; if (app && !icon.classList.contains('hidden')) openApp(app); });
+    });
+    document.getElementById('start-button').onclick = () => {
+        const menu = document.getElementById('start-menu');
+        menu.classList.toggle('show');
+        document.getElementById('start-menu-user').textContent = userName;
+    };
+    document.querySelectorAll('.start-menu-item[data-app]').forEach(item => {
+        item.onclick = () => { openApp(item.dataset.app); document.getElementById('start-menu').classList.remove('show'); };
+    });
+    document.getElementById('new-game').onclick = () => {
+        if (confirm('开始新游戏会清除当前进度，确定吗？')) {
+            localStorage.clear();
+            const newName = prompt('输入你的名字', '陌生人');
+            if (newName) localStorage.setItem('hee_username', newName);
+            location.reload();
+        }
+    };
+    document.getElementById('shutdown').onclick = () => location.reload();
+    document.addEventListener('click', (e) => {
+        const menu = document.getElementById('start-menu');
+        if (!menu.contains(e.target) && e.target !== document.getElementById('start-button'))
+            menu.classList.remove('show');
+    });
+    
+    // 更新时间
+    function updateTime() {
+        const now = new Date();
+        document.getElementById('tray-time').textContent = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+    }
+    updateTime(); setInterval(updateTime, 1000);
+    
+    // 欢迎文件
+    setTimeout(() => {
+        const w = document.getElementById('welcome-file');
+        if (w) w.classList.remove('hidden');
+    }, 3000);
+    
+    // 第7天解锁秘密文件夹
+    if (currentDay >= 7) {
+        document.getElementById('secret-folder')?.classList.remove('hidden');
+    }
+    
+    // 第一天弹窗
+    if (!firstPopup && currentDay === 1) {
+        setTimeout(() => {
+            showPopup('……你怎么进来的。这个论坛不应该被找到。', [
+                { text: '误入的', reply: '误入……这个论坛不应该被找到的。', residue: 2 },
+                { text: '偶然', reply: '没有偶然。', residue: 0 },
+                { text: '沉默', reply: '……不回答也行。', residue: -1 }
+            ]);
+            localStorage.setItem('hee_first_popup', 'true');
+        }, 5000);
+    }
+    
+    // 初始化显示
+    updateDisplays();
+    
+    // 论坛按钮事件（动态监听）
+    setTimeout(() => {
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('forum-btn')) {
+                const replyId = parseInt(e.target.dataset.reply);
+                const replies = [
+                    { text:'误入的', reply:'误入……这个论坛不应该被找到的。', residue:2 },
+                    { text:'偶然', reply:'没有偶然。', residue:0 },
+                    { text:'沉默', reply:'……不回答也行。', residue:-1 }
+                ];
+                const opt = replies[replyId];
+                const container = document.getElementById('popup-container');
+                const popup = document.createElement('div');
+                popup.className = 'system-popup';
+                popup.innerHTML = `<div class="system-popup-header"><span>💬 悄悄话</span><button class="system-popup-close">✕</button></div>
+                    <div class="system-popup-content">${escapeHtml(opt.text)}</div>`;
+                popup.querySelector('.system-popup-close').onclick = () => popup.remove();
+                container.appendChild(popup);
+                setTimeout(() => popup.remove(), 2000);
+                setTimeout(() => {
+                    const replyPopup = document.createElement('div');
+                    replyPopup.className = 'system-popup';
+                    replyPopup.style.bottom = '100px';
+                    let r = opt.reply.replace(/你/g, userName);
+                    replyPopup.innerHTML = `<div class="system-popup-header"><span>Heeseung</span><button class="system-popup-close">✕</button></div>
+                        <div class="system-popup-content">${escapeHtml(r)}</div>`;
+                    replyPopup.querySelector('.system-popup-close').onclick = () => replyPopup.remove();
+                    container.appendChild(replyPopup);
+                    setTimeout(() => replyPopup.remove(), 5000);
+                    residue = Math.min(30, Math.max(-10, residue + opt.residue));
+                    localStorage.setItem('hee_residue', residue);
+                    updateDisplays();
+                }, 500);
+            }
+        });
+    }, 100);
+</script>
 </body>
 </html>
