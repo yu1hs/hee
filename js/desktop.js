@@ -1,6 +1,13 @@
-/* desktop.js - 桌面主逻辑（完整版含互动类） */
+/* desktop.js - 桌面主逻辑（完整版） */
 
-let currentDay = parseInt(localStorage.getItem('hee_day') || '1');
+// ========== 确保天数从第1天开始 ==========
+let savedDay = parseInt(localStorage.getItem('hee_day') || '1');
+if (savedDay < 1 || savedDay > 7 || isNaN(savedDay)) {
+    savedDay = 1;
+    localStorage.setItem('hee_day', '1');
+    console.log('天数已重置为1');
+}
+let currentDay = savedDay;
 let residue = parseInt(localStorage.getItem('hee_residue') || '0');
 let openWindows = [];
 let nextWindowZIndex = 100;
@@ -12,6 +19,8 @@ let firstPopupShown = localStorage.getItem('hee_first_popup') === 'true';
 let remoteControlInterval = null;
 let lastRemoteTime = 0;
 let deletedFiles = [];
+
+console.log('当前天数:', currentDay, '残响值:', residue);
 
 document.addEventListener('DOMContentLoaded', function() {
     initDesktop();
@@ -29,7 +38,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }, 3000);
     
-    if (!firstPopupShown) {
+    // 第一次弹窗（仅第1天）
+    if (!firstPopupShown && currentDay === 1) {
         setTimeout(() => {
             showHeeseungPopup('……你怎么进来的。这个论坛不应该被找到。', [
                 { text: '误入的，不知道这是什么地方', reply: '误入……这个论坛不应该被找到的。', residue: 2 },
@@ -114,10 +124,9 @@ function startRemoteControl() {
                     break;
             }
         }
-    }, 30000); // 每30秒检查一次
+    }, 30000);
 }
 
-// 远程移动鼠标
 function remoteMoveMouse() {
     const icons = document.querySelectorAll('.desktop-icon:not(.hidden)');
     if (icons.length === 0) return;
@@ -127,7 +136,6 @@ function remoteMoveMouse() {
     const targetX = rect.left + rect.width / 2;
     const targetY = rect.top + rect.height / 2;
     
-    // 创建虚拟光标移动效果
     const cursor = document.createElement('div');
     cursor.style.cssText = `
         position: fixed;
@@ -148,13 +156,11 @@ function remoteMoveMouse() {
     
     setTimeout(() => {
         cursor.remove();
-        // 模拟点击
         randomIcon.style.backgroundColor = 'rgba(95, 139, 111, 0.3)';
         setTimeout(() => {
             randomIcon.style.backgroundColor = '';
         }, 300);
         
-        // 触发他的留言
         setTimeout(() => {
             const userName = localStorage.getItem('hee_username') || '你';
             showHeeseungPopup(`我在看着${userName}。`, [
@@ -164,7 +170,6 @@ function remoteMoveMouse() {
     }, 500);
 }
 
-// 远程打开文件
 function remoteOpenFile() {
     const apps = ['diary', 'photos', 'stickynotes', 'memo'];
     const randomApp = apps[Math.floor(Math.random() * apps.length)];
@@ -184,7 +189,6 @@ function remoteOpenFile() {
     }, 500);
 }
 
-// 远程删除文件
 function remoteDeleteFile() {
     const icons = document.querySelectorAll('.desktop-icon:not(.hidden):not([data-app="mycomputer"]):not([data-app="recycle"])');
     if (icons.length === 0) return;
@@ -193,7 +197,6 @@ function remoteDeleteFile() {
     const appName = randomIcon.dataset.app;
     const iconLabel = randomIcon.querySelector('.icon-label')?.textContent || '文件';
     
-    // 闪烁效果
     randomIcon.style.opacity = '0.5';
     playSound('delete');
     
@@ -202,9 +205,7 @@ function remoteDeleteFile() {
         deletedFiles.push({ app: appName, label: iconLabel, time: Date.now() });
         localStorage.setItem('hee_deleted_files', JSON.stringify(deletedFiles));
         
-        // 添加到回收站记录
         addToRecycleRecord(iconLabel);
-        
         triggerGlitch();
         
         setTimeout(() => {
@@ -215,7 +216,6 @@ function remoteDeleteFile() {
     }, 500);
 }
 
-// 添加到回收站记录
 function addToRecycleRecord(fileName) {
     let recycleContent = localStorage.getItem('hee_recycle_items') || '[]';
     try {
@@ -226,7 +226,6 @@ function addToRecycleRecord(fileName) {
     } catch(e) {}
 }
 
-// 恢复被删除文件的状态
 function loadDeletedFilesStatus() {
     const saved = localStorage.getItem('hee_deleted_files');
     if (saved) {
@@ -240,7 +239,6 @@ function loadDeletedFilesStatus() {
     }
 }
 
-// 屏幕闪烁/故障效果
 function triggerGlitch() {
     playSound('glitch');
     
@@ -249,14 +247,12 @@ function triggerGlitch() {
     
     desktop.classList.add('glitch-effect');
     
-    // 文字故障
     const texts = document.querySelectorAll('.icon-label, .window-title, .system-popup-content');
     texts.forEach(text => {
         text.classList.add('glitch-text');
         setTimeout(() => text.classList.remove('glitch-text'), 300);
     });
     
-    // 屏幕闪烁
     let flashCount = 0;
     const flashInterval = setInterval(() => {
         const overlay = document.createElement('div');
@@ -281,31 +277,6 @@ function triggerGlitch() {
         desktop.classList.remove('glitch-effect');
     }, 500);
 }
-
-// 添加故障样式
-const glitchStyle = document.createElement('style');
-glitchStyle.textContent = `
-    .glitch-effect {
-        animation: screenGlitch 0.3s ease-in-out;
-    }
-    @keyframes screenGlitch {
-        0% { transform: translate(0); }
-        20% { transform: translate(-2px, 1px); }
-        40% { transform: translate(2px, -1px); }
-        60% { transform: translate(-1px, 2px); }
-        80% { transform: translate(1px, -2px); }
-        100% { transform: translate(0); }
-    }
-    .glitch-text {
-        animation: textGlitch 0.2s 3;
-    }
-    @keyframes textGlitch {
-        0% { text-shadow: -1px 0 red; }
-        50% { text-shadow: 1px 0 blue; }
-        100% { text-shadow: 0 0 0; }
-    }
-`;
-document.head.appendChild(glitchStyle);
 
 function initEvents() {
     document.querySelectorAll('.desktop-icon').forEach(icon => {
@@ -489,58 +460,6 @@ function loadAppContent(appName, windowEl) {
     }
 }
 
-// ========== 记事本（带光标跟随） ==========
-function loadNotepad(container) {
-    const saved = localStorage.getItem('hee_notepad') || '';
-    const userName = localStorage.getItem('hee_username') || '你';
-    container.innerHTML = `
-        <textarea class="notepad-textarea" id="notepad-text" placeholder="写点什么...">${escapeHtml(saved)}</textarea>
-        <div style="margin-top:8px;"><button class="system-popup-btn" id="save-notepad">保存</button></div>
-        <div id="cursor-follower" style="position:relative; margin-top:8px; font-size:11px; color:#5f8b6f; display:none;">✍️ ${userName}在写...</div>
-    `;
-    const textarea = container.querySelector('#notepad-text');
-    const follower = container.querySelector('#cursor-follower');
-    let typingTimer = null;
-    
-    textarea.addEventListener('input', () => {
-        playSound('typing');
-        
-        // 显示光标跟随效果
-        if (follower) {
-            follower.style.display = 'block';
-            clearTimeout(typingTimer);
-            typingTimer = setTimeout(() => {
-                follower.style.display = 'none';
-            }, 1000);
-        }
-        
-        // 触发他的回复（彩蛋）
-        const text = textarea.value.toLowerCase();
-        if (text.includes('heeseung') || text.includes('羲承')) {
-            setTimeout(() => {
-                showHeeseungPopup(`你写下了我的名字。`, [{ text: '...', reply: '你在想我吗。', residue: 2 }]);
-            }, 1000);
-        }
-        if (text.includes('miss') || text.includes('想')) {
-            setTimeout(() => {
-                showHeeseungPopup(`你说你想我。`, [{ text: '...', reply: '我也想你。', residue: 3 }]);
-            }, 2000);
-        }
-        
-        // 统计字数成就
-        if (text.length >= 100) {
-            Achievements?.trigger('notepad_write');
-        }
-    });
-    
-    container.querySelector('#save-notepad').addEventListener('click', () => {
-        localStorage.setItem('hee_notepad', textarea.value);
-        playSound('click');
-        showHeeseungPopup('保存了。', [{ text: '嗯', reply: '我会看的。', residue: 1 }]);
-    });
-}
-
-// 其他应用函数（保持原有，略写关键部分）
 function loadDiary(container) {
     const entries = [
         { date: '2024-03-11 02:13', text: '下雨。没出门。听雨声。' },
@@ -594,6 +513,53 @@ function loadMemo(container) {
 
 function loadLogs(container) {
     container.innerHTML = `<div style="font-family:monospace; font-size:11px;"><div style="color:#5f8b6f;">[2025-01-02 21:47:22] 系统启动</div><div style="color:#5f8b6f;">[2025-01-03 00:13:05] 远程连接已建立</div><div style="color:#5f8b6f;">[2025-01-03 00:13:06] 来源：未知</div></div>`;
+}
+
+function loadNotepad(container) {
+    const saved = localStorage.getItem('hee_notepad') || '';
+    const userName = localStorage.getItem('hee_username') || '你';
+    container.innerHTML = `
+        <textarea class="notepad-textarea" id="notepad-text" placeholder="写点什么...">${escapeHtml(saved)}</textarea>
+        <div style="margin-top:8px;"><button class="system-popup-btn" id="save-notepad">保存</button></div>
+        <div id="cursor-follower" style="position:relative; margin-top:8px; font-size:11px; color:#5f8b6f; display:none;">✍️ ${userName}在写...</div>
+    `;
+    const textarea = container.querySelector('#notepad-text');
+    const follower = container.querySelector('#cursor-follower');
+    let typingTimer = null;
+    
+    textarea.addEventListener('input', () => {
+        playSound('typing');
+        
+        if (follower) {
+            follower.style.display = 'block';
+            clearTimeout(typingTimer);
+            typingTimer = setTimeout(() => {
+                follower.style.display = 'none';
+            }, 1000);
+        }
+        
+        const text = textarea.value.toLowerCase();
+        if (text.includes('heeseung') || text.includes('羲承')) {
+            setTimeout(() => {
+                showHeeseungPopup(`你写下了我的名字。`, [{ text: '...', reply: '你在想我吗。', residue: 2 }]);
+            }, 1000);
+        }
+        if (text.includes('miss') || text.includes('想')) {
+            setTimeout(() => {
+                showHeeseungPopup(`你说你想我。`, [{ text: '...', reply: '我也想你。', residue: 3 }]);
+            }, 2000);
+        }
+        
+        if (text.length >= 100) {
+            Achievements?.trigger('notepad_write');
+        }
+    });
+    
+    container.querySelector('#save-notepad').addEventListener('click', () => {
+        localStorage.setItem('hee_notepad', textarea.value);
+        playSound('click');
+        showHeeseungPopup('保存了。', [{ text: '嗯', reply: '我会看的。', residue: 1 }]);
+    });
 }
 
 function loadPaint(container) {
