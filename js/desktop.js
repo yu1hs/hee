@@ -1,13 +1,23 @@
-/* desktop.js - 桌面主逻辑（简化独立版） */
+/* desktop.js - 桌面主逻辑（完整版） */
 
-// ========== 初始化 ==========
-let currentDay = parseInt(localStorage.getItem('hee_day') || '1');
+// ========== 确保天数从第1天开始 ==========
+let savedDay = parseInt(localStorage.getItem('hee_day') || '1');
+if (savedDay < 1 || savedDay > 7 || isNaN(savedDay)) {
+    savedDay = 1;
+    localStorage.setItem('hee_day', '1');
+    console.log('天数已重置为1');
+}
+let currentDay = savedDay;
 let residue = parseInt(localStorage.getItem('hee_residue') || '0');
 let openWindows = [];
 let nextWindowZIndex = 100;
 let currentUserId = localStorage.getItem('hee_username') || 'User';
 let welcomeShown = false;
 let firstPopupShown = localStorage.getItem('hee_first_popup') === 'true';
+
+// 远程操控相关变量
+let remoteControlInterval = null;
+let deletedFiles = [];
 
 console.log('Desktop: 第', currentDay, '天, 残响值:', residue);
 
@@ -16,6 +26,9 @@ document.addEventListener('DOMContentLoaded', function() {
     initEvents();
     updateTime();
     setInterval(updateTime, 1000);
+    
+    // 启动远程操控随机事件
+    startRemoteControl();
     
     setTimeout(() => {
         if (!welcomeShown) {
@@ -42,6 +55,7 @@ function initDesktop() {
     playSound('boot');
     updateResidueDisplay();
     updateDayBasedContent();
+    loadDeletedFilesStatus();
 }
 
 function updateResidueDisplay() {
@@ -56,7 +70,6 @@ function updateResidueDisplay() {
 }
 
 function updateDayBasedContent() {
-    // 根据天数解锁图标
     if (currentDay >= 3) {
         document.querySelector('[data-app="photos"]')?.classList.remove('hidden');
         document.querySelector('[data-app="terminal"]')?.classList.remove('hidden');
@@ -81,6 +94,187 @@ function updateDayBasedContent() {
     }
 }
 
+// ========== 远程操控系统 ==========
+function startRemoteControl() {
+    if (remoteControlInterval) clearInterval(remoteControlInterval);
+    
+    remoteControlInterval = setInterval(() => {
+        const chance = Math.random() * 100;
+        const threshold = Math.min(40, 10 + residue);
+        
+        if (chance < threshold && currentDay >= 2) {
+            const events = ['move_mouse', 'open_file', 'delete_file', 'glitch'];
+            const event = events[Math.floor(Math.random() * events.length)];
+            
+            switch(event) {
+                case 'move_mouse':
+                    remoteMoveMouse();
+                    break;
+                case 'open_file':
+                    remoteOpenFile();
+                    break;
+                case 'delete_file':
+                    remoteDeleteFile();
+                    break;
+                case 'glitch':
+                    triggerGlitch();
+                    break;
+            }
+        }
+    }, 30000);
+}
+
+function remoteMoveMouse() {
+    const icons = document.querySelectorAll('.desktop-icon:not(.hidden)');
+    if (icons.length === 0) return;
+    
+    const randomIcon = icons[Math.floor(Math.random() * icons.length)];
+    const rect = randomIcon.getBoundingClientRect();
+    const targetX = rect.left + rect.width / 2;
+    const targetY = rect.top + rect.height / 2;
+    
+    const cursor = document.createElement('div');
+    cursor.style.cssText = `
+        position: fixed;
+        width: 20px;
+        height: 20px;
+        border: 2px solid #5f8b6f;
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 10000;
+        transition: all 0.5s ease;
+        left: ${targetX - 10}px;
+        top: ${targetY - 10}px;
+        opacity: 0.8;
+    `;
+    document.body.appendChild(cursor);
+    
+    playSound('click');
+    
+    setTimeout(() => {
+        cursor.remove();
+        randomIcon.style.backgroundColor = 'rgba(95, 139, 111, 0.3)';
+        setTimeout(() => {
+            randomIcon.style.backgroundColor = '';
+        }, 300);
+        
+        setTimeout(() => {
+            const userName = localStorage.getItem('hee_username') || '你';
+            showHeeseungPopup(`我在看着${userName}。`, [
+                { text: '……', reply: '你感觉到了吗。', residue: 1 }
+            ]);
+        }, 1000);
+    }, 500);
+}
+
+function remoteOpenFile() {
+    const apps = ['diary', 'photos', 'stickynotes', 'memo'];
+    const randomApp = apps[Math.floor(Math.random() * apps.length)];
+    
+    playSound('open');
+    triggerGlitch();
+    
+    setTimeout(() => {
+        openApp(randomApp);
+        
+        setTimeout(() => {
+            const userName = localStorage.getItem('hee_username') || '你';
+            showHeeseungPopup(`我帮你打开了。${userName}想看这个吧。`, [
+                { text: '……', reply: '我知道你想要什么。', residue: 1 }
+            ]);
+        }, 1500);
+    }, 500);
+}
+
+function remoteDeleteFile() {
+    const icons = document.querySelectorAll('.desktop-icon:not(.hidden):not([data-app="mycomputer"]):not([data-app="recycle"])');
+    if (icons.length === 0) return;
+    
+    const randomIcon = icons[Math.floor(Math.random() * icons.length)];
+    const appName = randomIcon.dataset.app;
+    const iconLabel = randomIcon.querySelector('.icon-label')?.textContent || '文件';
+    
+    randomIcon.style.opacity = '0.5';
+    playSound('delete');
+    
+    setTimeout(() => {
+        randomIcon.classList.add('hidden');
+        deletedFiles.push({ app: appName, label: iconLabel, time: Date.now() });
+        localStorage.setItem('hee_deleted_files', JSON.stringify(deletedFiles));
+        
+        addToRecycleRecord(iconLabel);
+        triggerGlitch();
+        
+        setTimeout(() => {
+            showHeeseungPopup(`「${iconLabel}」我删掉了。……你不看的话，就没有存在的意义。`, [
+                { text: '为什么删掉', reply: '因为我只想让你看我。', residue: 0 }
+            ]);
+        }, 1000);
+    }, 500);
+}
+
+function addToRecycleRecord(fileName) {
+    let recycleContent = localStorage.getItem('hee_recycle_items') || '[]';
+    try {
+        let items = JSON.parse(recycleContent);
+        items.unshift({ name: fileName, date: new Date().toISOString(), deletedBy: 'Heeseung' });
+        if (items.length > 10) items.pop();
+        localStorage.setItem('hee_recycle_items', JSON.stringify(items));
+    } catch(e) {}
+}
+
+function loadDeletedFilesStatus() {
+    const saved = localStorage.getItem('hee_deleted_files');
+    if (saved) {
+        try {
+            deletedFiles = JSON.parse(saved);
+            deletedFiles.forEach(df => {
+                const icon = document.querySelector(`.desktop-icon[data-app="${df.app}"]`);
+                if (icon) icon.classList.add('hidden');
+            });
+        } catch(e) {}
+    }
+}
+
+function triggerGlitch() {
+    playSound('glitch');
+    
+    const desktop = document.getElementById('desktop');
+    if (!desktop) return;
+    
+    desktop.classList.add('glitch-effect');
+    
+    const texts = document.querySelectorAll('.icon-label, .window-title, .system-popup-content');
+    texts.forEach(text => {
+        text.classList.add('glitch-text');
+        setTimeout(() => text.classList.remove('glitch-text'), 300);
+    });
+    
+    let flashCount = 0;
+    const flashInterval = setInterval(() => {
+        const overlay = document.createElement('div');
+        overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            pointer-events: none;
+            z-index: 9999;
+        `;
+        document.body.appendChild(overlay);
+        setTimeout(() => overlay.remove(), 50);
+        
+        flashCount++;
+        if (flashCount >= 5) clearInterval(flashInterval);
+    }, 80);
+    
+    setTimeout(() => {
+        desktop.classList.remove('glitch-effect');
+    }, 500);
+}
+
 function initEvents() {
     // 桌面图标点击
     document.querySelectorAll('.desktop-icon').forEach(icon => {
@@ -102,6 +296,10 @@ function initEvents() {
             e.stopPropagation();
             playSound('click');
             startMenu.classList.toggle('hidden');
+            
+            const userName = localStorage.getItem('hee_username') || 'User';
+            const userDisplay = document.getElementById('start-menu-user');
+            if (userDisplay) userDisplay.textContent = userName;
         });
     }
     
@@ -119,6 +317,19 @@ function initEvents() {
             startMenu.classList.add('hidden');
         });
     });
+    
+    // 新游戏按钮
+    const newGameBtn = document.getElementById('new-game');
+    if (newGameBtn) {
+        newGameBtn.addEventListener('click', () => {
+            if (confirm('开始新游戏会清除当前进度，确定吗？')) {
+                localStorage.clear();
+                const userName = prompt('输入你的名字', '陌生人');
+                if (userName) localStorage.setItem('hee_username', userName);
+                location.reload();
+            }
+        });
+    }
     
     // 关机
     const shutdownBtn = document.getElementById('shutdown');
@@ -439,7 +650,18 @@ function loadMyComputer(container) {
 }
 
 function loadRecycle(container) {
-    container.innerHTML = `<div style="padding:20px; color:#888; text-align:center;">回收站是空的</div>`;
+    const recycleItems = localStorage.getItem('hee_recycle_items') || '[]';
+    let items = [];
+    try { items = JSON.parse(recycleItems); } catch(e) {}
+    let html = '';
+    if (items.length === 0) {
+        html = '<div style="padding:20px; text-align:center; color:#888;">回收站是空的</div>';
+    } else {
+        items.forEach(item => {
+            html += `<div style="padding:12px; border-bottom:1px solid #2a2a3a;"><div>🗑️ ${escapeHtml(item.name)}</div><div style="font-size:10px; color:#666;">${item.date.substring(0,10)} · 被${item.deletedBy === 'Heeseung' ? 'Heeseung' : '你'}删除</div></div>`;
+        });
+    }
+    container.innerHTML = html;
 }
 
 function loadWelcome(container) {
